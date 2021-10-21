@@ -1,13 +1,30 @@
-import React from "react";
-import { Button } from "react-bootstrap";
+import React, { useState } from "react";
+import { Container } from "react-bootstrap";
+import ScriptDisplay from "./ScriptDisplay";
+import SettingsModal from "./SettingsModal";
 import Strobe from "./Strobe";
 
 const App = () => {
+    const [isStrobo, setIsStrobo] = useState(false);
+
+    const [fps, setFps] = useState("10");
+    const [colors, setColors] = useState(["black", "white"]);
+
+    const startStrobo = () => setIsStrobo(true);
+    const stopStrobo = () => setIsStrobo(false);
+
     return (
-        <div className="App">
-            <Strobe fps={1} colors={["white", "black", "blue", "red", "#FFFF00"]} />
-            <Button>Test</Button>
-        </div>
+        <Container className="App" fluid>
+            {isStrobo && <Strobe fps={Number(fps)} colors={["white", "black", "red", "blue"]} />}
+            <ScriptDisplay></ScriptDisplay>
+            <SettingsModal
+                fps={fps}
+                colors={colors}
+                onStopStrobo={stopStrobo}
+                onStartStrobo={startStrobo}
+                onFpsChange={(value) => setFps(value)}
+            />
+        </Container>
     );
 };
 

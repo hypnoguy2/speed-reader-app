@@ -3,11 +3,11 @@ import _ from "lodash";
 
 const styles: CSSProperties = {
     width: "100%",
-    height: "100%",
+    height: "100vh",
 };
 
 export interface StrobeProps {
-    fps?: number;
+    fps: number;
     colors?: string[];
 }
 
@@ -26,7 +26,10 @@ const Strobe = (props: StrobeProps) => {
         const time = props.fps ? (1 / props.fps) * 1000 : 1000;
         const interval = setInterval(updateBg, time);
 
-        return () => clearInterval(interval);
+        console.log(time);
+        return () => {
+            clearInterval(interval);
+        };
     }, [props, updateBg]);
 
     return (
