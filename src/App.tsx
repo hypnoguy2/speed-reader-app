@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Container } from "react-bootstrap";
 import ScriptDisplay from "./ScriptDisplay";
-import SettingsModal from "./SettingsModal";
+import SettingsContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
 
 const App = () => {
@@ -14,15 +14,16 @@ const App = () => {
     const stopStrobo = () => setIsStrobo(false);
 
     return (
-        <Container className="App" fluid>
-            {isStrobo && <Strobe fps={Number(fps)} colors={["white", "black", "red", "blue"]} />}
+        <Container className="h-100 w-100 p-0" fluid>
+            {isStrobo && <Strobe fps={Number(fps)} colors={colors} />}
             <ScriptDisplay></ScriptDisplay>
-            <SettingsModal
+            <SettingsContainer
                 fps={fps}
                 colors={colors}
                 onStopStrobo={stopStrobo}
                 onStartStrobo={startStrobo}
                 onFpsChange={(value) => setFps(value)}
+                onColorChange={value => setColors(value)}
             />
         </Container>
     );

@@ -1,18 +1,13 @@
-import React, { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import _ from "lodash";
-
-const styles: CSSProperties = {
-    width: "100%",
-    height: "100vh",
-};
 
 export interface StrobeProps {
     fps: number;
-    colors?: string[];
+    colors: string[];
 }
 
 const Strobe = (props: StrobeProps) => {
-    const colors = useMemo(() => props.colors || ["white", "black"], [props]);
+    const {colors} = props
     const [bg, setBg] = useState<string>(colors[0]);
 
     const updateBg = useCallback(() => {
@@ -33,8 +28,7 @@ const Strobe = (props: StrobeProps) => {
     }, [props, updateBg]);
 
     return (
-        <div className="Strobe" style={{ ...styles, background: bg }}>
-            {bg}
+        <div className="w-100 h-100 " style={{background: bg, transition: "all .05s linear" }}>
         </div>
     );
 };
