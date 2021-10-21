@@ -16,10 +16,10 @@ const Strobe = (props: StrobeProps) => {
     const [bg, setBg] = useState<string>(colors[0]);
 
     const updateBg = useCallback(() => {
-        setBg(
-            (state) =>
-                colors.filter((c) => c !== state)[_.random(0, colors.length - 1)]
-        );
+        setBg((state) => {
+            const filtered = colors.filter((c) => c !== state);
+            return filtered[_.random(0, filtered.length - 1)];
+        });
     }, [colors]);
 
     useEffect(() => {
