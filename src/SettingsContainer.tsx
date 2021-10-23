@@ -1,66 +1,48 @@
-import { ChangeEvent, useEffect, useState } from "react";
-import {
-    Form,
-    Button,
-    ToggleButton,
-    ToggleButtonGroup,
-    OffcanvasProps,
-    Offcanvas,
-    Col,
-    Row,
-    Container,
-} from "react-bootstrap";
+import { ChangeEvent } from "react";
+import { Form, Button, OffcanvasProps, Offcanvas, Stack } from "react-bootstrap";
 
 export interface SettingsProps extends OffcanvasProps {
-    fps: string;
-    colors: string[];
+    fps: number;
+    // colors: string[];
 
     onStopStrobo?: () => void;
     onStartStrobo?: () => void;
-    onFpsChange: (value: string) => void;
-    onColorChange: (value: string[]) => void;
+    onFpsChange: (value: number) => void;
+    // onColorChange: (value: string[]) => void;
 }
 
 const SettingsContainer = (props: SettingsProps) => {
     const { fps, colors, onStartStrobo, onStopStrobo, onFpsChange, onColorChange, ...other } =
         props;
 
-    const [show, setShow] = useState(true);
-
-    const handleClose = () => setShow(false);
-
     const handleFPSChange = (ev: ChangeEvent<HTMLInputElement>) => {
-        if (ev.target.validity.valid) props.onFpsChange(ev.target.value);
+        if (ev.target.validity.valid) props.onFpsChange(Number(ev.target.value));
     };
 
-    useEffect(() => {
-        const handleSDown = (ev: KeyboardEvent) => {
-            if (ev.key === "s") setShow(true);
-        };
-        document.addEventListener("keydown", handleSDown);
-
-        return () => document.removeEventListener("keydown", handleSDown);
-    });
-
     return (
-        <Offcanvas show={show} onHide={handleClose} {...other}>
+        <Offcanvas {...other}>
             <Offcanvas.Header closeButton>
                 <Offcanvas.Title>Settings</Offcanvas.Title>
             </Offcanvas.Header>
             <Offcanvas.Body>
-                <Form as={Container} className="p-0">
-                    <Form.Group className="mb-3">
-                        <Form.Label>FPS</Form.Label>
+                <Stack gap={3}>
+                    <Form.Group>
+                        <Form.Label>FPS (Flashes Per Second)</Form.Label>
                         <Form.Control
                             type="number"
+                            step=".1"
                             value={fps}
                             onChange={handleFPSChange}
-                            max={120}
-                            min={1}
+                            max={20}
+                            min={0}
                         />
+                        <Form.Text>
+                            Insert a framefrate between 0.0 and 20.0, when set to zero no flashing
+                            will occur.
+                        </Form.Text>
                     </Form.Group>
-                    <ToggleButtonGroup
-                        className="mb-3 d-flex"
+                    {/* <ToggleButtonGroup
+                        className="d-flex"
                         type="checkbox"
                         value={colors}
                         onChange={onColorChange}>
@@ -75,20 +57,16 @@ const SettingsContainer = (props: SettingsProps) => {
                                 {color}
                             </ToggleButton>
                         ))}
-                    </ToggleButtonGroup>
-                </Form>
-                <Row>
-                    <Col>
+                    </ToggleButtonGroup> */}
+                    <Stack direction="horizontal">
                         <Button variant="danger" onClick={onStopStrobo}>
                             Stop Strobo
                         </Button>
-                    </Col>
-                    <Col>
-                        <Button className="float-end" variant="primary" onClick={onStartStrobo}>
+                        <Button className="ms-auto" variant="primary" onClick={onStartStrobo}>
                             Start Strobo
                         </Button>
-                    </Col>
-                </Row>
+                    </Stack>
+                </Stack>
             </Offcanvas.Body>
         </Offcanvas>
     );
