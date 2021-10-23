@@ -6,7 +6,7 @@ import SettingsContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
 
 const App = () => {
-    const [isStrobo, setIsStrobo] = useState(false);
+    const [strobo, setStrobo] = useState(false);
     const [show, setShow] = useState(true);
     const [fps, setFps] = useState(1);
     const [script, setScript] = useState(loremIpsum);
@@ -24,9 +24,6 @@ const App = () => {
         handlePause,
         handleReset,
     } = useScript();
-
-    const startStrobo = () => setIsStrobo(true);
-    const stopStrobo = () => setIsStrobo(false);
 
     useEffect(() => {
         if (index > 0 && index >= words.length - 1) {
@@ -61,7 +58,7 @@ const App = () => {
 
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            {isStrobo && <Strobe fps={fps} />}
+            {!show && strobo && <Strobe fps={fps} />}
             <div className="text-wrapper">
                 <div className="text">{words[index]}</div>
             </div>
@@ -71,8 +68,8 @@ const App = () => {
                 fps={fps}
                 script={script}
                 wpm={wpm}
-                onStopStrobo={stopStrobo}
-                onStartStrobo={startStrobo}
+                strobo={strobo}
+                onStroboChange={setStrobo}
                 onFpsChange={setFps}
                 onWpmChange={handleWPMChange}
                 onScriptChange={handleScriptChange}
