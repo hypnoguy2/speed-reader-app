@@ -5,16 +5,12 @@ export interface Settings {
     fps: number;
     wpm: number;
     script: string;
-    // colors: string[];
 
     onStopStrobo?: () => void;
     onStartStrobo?: () => void;
     onFpsChange: (value: number) => void;
     onWpmChange: (value: number) => void;
     onScriptChange: (value: string) => void;
-}
-export interface SettingsProps extends OffcanvasProps {
-    // onColorChange: (value: string[]) => void;
 }
 
 const SettingsContainer = (props: Settings & OffcanvasProps) => {
@@ -91,8 +87,13 @@ const SettingsContainer = (props: Settings & OffcanvasProps) => {
                     </Form.Group>
                     <Form.Group>
                         <Form.Label>Script</Form.Label>
-                        <Form.Control as="textarea" rows={4} />
-                        <Form.Text>How many words per minute will be shown.</Form.Text>
+                        <Form.Control
+                            as="textarea"
+                            rows={4}
+                            onChange={handleScriptChange}
+                            value={script}
+                        />
+                        <Form.Text>Write your script here.</Form.Text>
                     </Form.Group>
                 </Stack>
             </Offcanvas.Body>

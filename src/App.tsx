@@ -12,7 +12,6 @@ const App = () => {
     const [script, setScript] = useState(loremIpsum);
     const [words, setWords] = useState(script.split(" "));
     const [loops, setLoops] = useState(0);
-    // const [colors, setColors] = useState(["black", "white"]);
 
     const {
         isRunning,
@@ -24,13 +23,13 @@ const App = () => {
         handleResume,
         handlePause,
         handleReset,
-    } = useScript(words);
+    } = useScript();
 
     const startStrobo = () => setIsStrobo(true);
     const stopStrobo = () => setIsStrobo(false);
 
     useEffect(() => {
-        if (index >= words.length - 1) {
+        if (index > 0 && index >= words.length - 1) {
             handleReset();
             setLoops((l) => l + 1);
         }
@@ -56,7 +55,9 @@ const App = () => {
 
     const handleScriptChange = (value: string) => {
         setScript(value);
-    }
+        setWords(value.split(/\s+/));
+        handleReset();
+    };
 
     return (
         <Container className="h-100 w-100 p-0" fluid>
@@ -70,13 +71,11 @@ const App = () => {
                 fps={fps}
                 script={script}
                 wpm={wpm}
-                // colors={colors}
                 onStopStrobo={stopStrobo}
                 onStartStrobo={startStrobo}
                 onFpsChange={setFps}
                 onWpmChange={handleWPMChange}
                 onScriptChange={handleScriptChange}
-                // onColorChange={(value) => setColors(value)}
                 onHide={() => setShow((show) => !show)}
             />
         </Container>

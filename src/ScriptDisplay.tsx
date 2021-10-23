@@ -9,7 +9,7 @@ interface ScriptDisplayProps {
 
 export const ScriptEvent = "script";
 
-export const useScript = (initialState: string[] = []) => {
+export const useScript = () => {
     const [index, setIndex] = useState(0);
     const [wpm, setWPM] = useState(300);
     const [isActive, setIsActive] = useState(false);
@@ -31,13 +31,11 @@ export const useScript = (initialState: string[] = []) => {
     };
 
     const handlePause = () => {
-        console.log("paused");
         clearInterval(countRef.current);
         setIsRunning(false);
     };
 
     const handleResume = () => {
-        console.log("resume with wpm: " + wpm);
         setIsRunning(true);
         countRef.current = setInterval(() => {
             setIndex((timer) => timer + 1);
@@ -45,8 +43,6 @@ export const useScript = (initialState: string[] = []) => {
     };
 
     const handleReset = () => {
-        
-        console.log("reset");
         clearInterval(countRef.current);
         setIsActive(false);
         setIsRunning(false);
