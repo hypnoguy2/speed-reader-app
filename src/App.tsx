@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Container } from "react-bootstrap";
 import { useScript } from "./ScriptDisplay";
 import { loremIpsum } from "./Scripts";
-import SettingsContainer from "./SettingsContainer";
+import MenuContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
 
 const App = () => {
@@ -24,6 +24,14 @@ const App = () => {
         handlePause,
         handleReset,
     } = useScript();
+
+    const renderTime = useRef(0);
+
+    useEffect(() => {
+        console.log("interval ", performance.now() - renderTime.current, " ", fps);
+
+        renderTime.current = performance.now();
+    });
 
     useEffect(() => {
         if (index > 0 && index >= words.length - 1) {
@@ -62,9 +70,10 @@ const App = () => {
             <div className="text-wrapper">
                 <div className="text">{words[index]}</div>
             </div>
-            <SettingsContainer
+            <MenuContainer
                 show={show}
                 backdrop={false}
+                placement="end"
                 fps={fps}
                 script={script}
                 wpm={wpm}

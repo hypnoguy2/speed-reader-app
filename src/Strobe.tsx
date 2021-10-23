@@ -1,5 +1,3 @@
-import { useEffect, useRef } from "react";
-
 export interface StrobeProps {
     classNames?: string;
     style?: CSSStyleSheet;
@@ -7,14 +5,6 @@ export interface StrobeProps {
 }
 
 const Strobe = (props: StrobeProps) => {
-    const renderTime = useRef(0);
-
-    useEffect(() => {
-        console.log("interval ", performance.now() - renderTime.current, " ", props.fps);
-
-        renderTime.current = performance.now();
-    });
-
     const animationDuration = props.fps ? `calc(1000ms/${props.fps})` : "0s";
 
     return (
