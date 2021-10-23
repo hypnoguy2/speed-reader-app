@@ -1,19 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 
 interface ScriptDisplayProps {
     script?: string;
     fontSize?: string | number;
     wpm?: number;
+    children?: ReactNode;
 }
 
 export const ScriptEvent = "script";
 
-export const useScript = (initialState = "", wpm = 300) => {
-    // sliced script
-    const script = initialState.split(" ");
+export const useScript = (initialState: string[] = []) => {
     const [index, setIndex] = useState(0);
-    const [current, setCurrent] = useState(script[index]);
-    const [speed, setSpeed] = useState(60000 / wpm);
+    const [wpm, setWPM] = useState(300);
     const [isActive, setIsActive] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
     const countRef = useRef(
@@ -22,94 +20,92 @@ export const useScript = (initialState = "", wpm = 300) => {
         }, 1000000)
     ); // empty interval to create a reusable countRef with useRef
 
-    useEffect(() => {
-        setCurrent(script[index]);
-        if (index >= script.length - 1) handlePause();
-    }, [index, script]);
-
     const handleStart = () => {
         setIsActive(true);
         setIsRunning(true);
         countRef.current = setInterval(() => {
             setIndex((index) => {
-                console.log(index);
                 return index + 1;
             });
-        }, speed);
+        }, 60000 / wpm);
     };
 
     const handlePause = () => {
+        console.log("paused");
         clearInterval(countRef.current);
         setIsRunning(false);
     };
 
     const handleResume = () => {
+        console.log("resume with wpm: " + wpm);
         setIsRunning(true);
         countRef.current = setInterval(() => {
             setIndex((timer) => timer + 1);
-        }, speed);
+        }, 60000 / wpm);
     };
 
     const handleReset = () => {
+        
+        console.log("reset");
         clearInterval(countRef.current);
         setIsActive(false);
         setIsRunning(false);
         setIndex(0);
     };
 
-    const handleSpeedChange = (newSpeed: number) => {
+    const handleWPMChange = (newWPM: number) => {
         clearInterval(countRef.current);
-        setSpeed(newSpeed);
-        countRef.current = setInterval(() => {
-            setIndex((index) => index + 1);
-        }, newSpeed);
+        setWPM(newWPM);
+        if (isActive && isRunning)
+            countRef.current = setInterval(() => {
+                setIndex((index) => index + 1);
+            }, 60000 / newWPM);
     };
 
     return {
         index,
-        current,
-        speed,
+        wpm,
         isActive,
         isRunning,
         handleStart,
         handlePause,
         handleResume,
         handleReset,
-        handleSpeedChange,
+        handleWPMChange,
     };
 };
 
 const ScriptDisplay = (props: ScriptDisplayProps) => {
-    const {
-        isRunning,
-        isActive,
-        index,
-        current,
-        handleStart,
-        handleResume: resume,
-        handlePause,
-    } = useScript(props.script, props.wpm);
+    // const {
+    //     isRunning,
+    //     isActive,
+    //     index,
+    //     current,
+    //     handleStart,
+    //     handleResume: resume,
+    //     handlePause,
+    // } = useScript(props.script, props.wpm);
 
-    const handleResume = () => {
-        if (isActive && !isRunning) resume();
-        if (!isActive) handleStart();
-    };
+    // const handleResume = () => {
+    //     if (isActive && !isRunning) resume();
+    //     if (!isActive) handleStart();
+    // };
 
-    const handleScriptEvent = (ev: Event) => {
-        const action = (ev as CustomEvent).detail;
-        if (action === "resume") handleResume();
-        if (action === "pause") handlePause();
-    };
+    // const handleScriptEvent = (ev: Event) => {
+    //     const action = (ev as CustomEvent).detail;
+    //     if (action === "resume") handleResume();
+    //     if (action === "pause") handlePause();
+    // };
 
-    useEffect(() => {
-        document.addEventListener(ScriptEvent, handleScriptEvent);
+    // useEffect(() => {
+    //     document.addEventListener(ScriptEvent, handleScriptEvent);
 
-        return () => document.removeEventListener(ScriptEvent, handleScriptEvent);
-    });
+    //     return () => document.removeEventListener(ScriptEvent, handleScriptEvent);
+    // });
 
     return (
         <div className="text-wrapper">
-            <div className="text">{current}</div>
+            <div className="text">{props.children}</div>
         </div>
     );
 };

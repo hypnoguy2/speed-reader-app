@@ -13,6 +13,8 @@ const Strobe = (props: StrobeProps) => {
     // const [bg, setBg] = useState<string>(colors[0]);
     const renderTime = useRef(0);
 
+    // const {fps: contextFPS} = useContext(FPSContext);
+
     // const updateBg = useCallback(() => {
     //     setBg((state) => {
     //         const filtered = colors.filter((c) => c !== state);
@@ -21,7 +23,8 @@ const Strobe = (props: StrobeProps) => {
     // }, [colors]);
 
     useEffect(() => {
-        console.log("interval ", performance.now() - renderTime.current);
+        console.log("interval ", performance.now() - renderTime.current, " ", props.fps);
+    
         renderTime.current = performance.now();
     });
 
