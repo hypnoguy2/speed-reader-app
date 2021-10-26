@@ -6,9 +6,10 @@ import MenuContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
 
 const App = () => {
-    const [strobo, setStrobo] = useState(false);
+    const [strobo] = useState(false);
     const [show, setShow] = useState(true);
     const [fps, setFps] = useState(1);
+    const [fontSize, setFontSize] = useState("10vw");
     const [script, setScript] = useState(loremIpsum);
     const [words, setWords] = useState(script.split(" "));
     const [loops, setLoops] = useState(0);
@@ -77,8 +78,8 @@ const App = () => {
                 fps={fps}
                 script={script}
                 wpm={wpm}
-                strobo={strobo}
-                onStroboChange={setStrobo}
+                fontSize={fontSize}
+                onFontSizeChange={setFontSize}
                 onFpsChange={setFps}
                 onWpmChange={handleWPMChange}
                 onScriptChange={handleScriptChange}
