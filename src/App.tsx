@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
 
 import { useScript } from "./ScriptDisplay";
@@ -6,15 +6,31 @@ import ScriptEditor from "./ScriptEditor";
 import { loremIpsum } from "./Scripts";
 import MenuContainer from "./SettingsContainer";
 
+const processScript = (s: string): string[] => {
+    // removes whitespaces in options, then splits on whitespaces
+    return splitString(s.replace(/<[^>]*>/gi, (match) => match.replace(/\s+/g, "")));
+};
+
+const splitString = (s: string): string[] => {
+    return s.split(/\s+/g);
+};
+
+interface OptionManagerType {
+    [key: string]: { changeFunction: (value: string | number) => void };
+}
+
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
     const [editorOpen, setEditorOpen] = useState(false);
-    const [fontSize, setFontSize] = useState("10");
-    const [script, setScript] = useState(loremIpsum);
-    const [splittedScript, setSplittetScript] = useState(loremIpsum.split(" "));
-    const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
-    const [loops, setLoops] = useState(1);
 
+    const [script, setScript] = useState(loremIpsum);
+    const [splittedScript, setSplittetScript] = useState(processScript(script));
+    const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
+
+    const [fontSize, setFontSize] = useState("10");
+    const [loops, setLoops] = useState("1");
+
+    // hook to run over index
     const {
         isRunning,
         isActive,
@@ -27,53 +43,87 @@ const App = () => {
         handleReset,
     } = useScript();
 
+    const [startOptions, setStartOptions] = useState({
+        wpm,
+        loops,
+        fontSize,
+    });
+
+    // Performance checker
     const renderTime = useRef(0);
 
+    const optionsManager: OptionManagerType = useMemo(() => {
+        return {
+            wpm: { changeFunction: onWpmChange },
+            fontSize: { changeFunction: setFontSize },
+        } as OptionManagerType;
+    }, [onWpmChange]);
+
     useEffect(() => {
-        console.log("interval ", performance.now() - renderTime.current);
+        // console.log("interval ", performance.now() - renderTime.current);
 
         renderTime.current = performance.now();
     });
 
     useEffect(() => {
-        if (/<wpm=\d+>/i.test(splittedScript[index])) {
-            const wpm = splittedScript[index].match(/\d+/g);
-            if (wpm) onWpmChange(Number(wpm[0]));
-            setSplittetScript(splittedScript.filter((w, i) => i !== index));
-            console.log(wpm);
+        if (menuOpen) {
+            setStartOptions({ wpm, loops, fontSize });
         }
-    }, [index, splittedScript, onWpmChange, setSplittetScript]);
+    }, [menuOpen, wpm, loops, fontSize]);
 
+    // effect to get options from tags
+    useEffect(() => {
+        if (splittedScript[index] && splittedScript[index].startsWith("<")) {
+            for (const key in optionsManager) {
+                const option = splittedScript[index].match(new RegExp(key + "=\\d+"));
+                if (option) {
+                    const newValue = option[0].match(/\d+/);
+                    if (newValue) optionsManager[key].changeFunction(newValue[0]);
+                }
+            }
+
+            setSplittetScript(splittedScript.filter((w, i) => i !== index));
+        }
+    }, [index, splittedScript, optionsManager, onWpmChange]);
+
+    // Effect to loop script
     useEffect(() => {
         if (index > 0 && index >= words.length) {
             handleReset();
-            setLoops((l) => l - 1);
-            setSplittetScript(script.split(" "))
+            setLoops((l) => Number(l) - 1 + "");
+            setSplittetScript(processScript(script));
         }
-    }, [index, words, script, handleReset, setLoops, setSplittetScript]);
+    }, [index, words, script, handleReset]);
 
+    // Effect to start and pause the script on menu toggle
     useEffect(() => {
         if (menuOpen) {
             if (isRunning) handlePause();
         } else {
             if (isActive && !isRunning) handleResume();
-            if (!isActive && loops !== 0) handleStart();
+            if (!isActive && loops !== "0") handleStart();
         }
     }, [menuOpen, loops, isRunning, isActive, handleStart, handleResume, handlePause]);
 
+    // Effect to open menu when pressing s
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
-            if (ev.key === "s") setMenuOpen(true);
+            if (ev.key === "s") {
+                setFontSize(startOptions.fontSize);
+                setMenuOpen(true);
+            }
         };
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [setMenuOpen]);
+    }, [startOptions]);
 
+    // Option change handlers
     const handleScriptChange = (value: string) => {
         setScript(value);
-        setSplittetScript(value.split(/\s+/gi));
-        setWords(value.split(/\s+/gi).filter((w) => !w.startsWith("<")));
+        const splitted = processScript(value);
+        setSplittetScript(splitted);
+        setWords(splitted.filter((w) => !w.startsWith("<")));
         handleReset();
     };
 
@@ -88,14 +138,14 @@ const App = () => {
     };
 
     const handleLoopsChange = (ev: ChangeEvent<HTMLInputElement>) => {
-        if (ev.target.validity.valid) setLoops(Number(ev.target.value));
+        if (ev.target.validity.valid) setLoops(ev.target.value);
     };
 
     return (
         <Container className="h-100 w-100 p-0" fluid>
             <div className="text-wrapper">
                 <div className="text" style={{ fontSize: fontSize + "vw" }}>
-                    {words[index]}
+                    {isRunning && words[index]}
                 </div>
             </div>
             <MenuContainer
@@ -130,10 +180,10 @@ const App = () => {
                             <Form.Label>Number of Loops</Form.Label>
                             <Form.Control
                                 type="number"
-                                max={10}
                                 value={loops}
-                                min={-1}
                                 onChange={handleLoopsChange}
+                                max={10}
+                                min={-1}
                             />
                             <Form.Text>
                                 0 loops means no words, 1-x means 1-x loops, -1 means infinite
