@@ -11,7 +11,8 @@ const App = () => {
     const [editorOpen, setEditorOpen] = useState(false);
     const [fontSize, setFontSize] = useState("10");
     const [script, setScript] = useState(loremIpsum);
-    const [words, setWords] = useState(script.split(" "));
+    const [splittedScript, setSplittetScript] = useState(loremIpsum.split(" "));
+    const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
     const [loops, setLoops] = useState(1);
 
     const {
@@ -35,11 +36,21 @@ const App = () => {
     });
 
     useEffect(() => {
+        if (/<wpm=\d+>/i.test(splittedScript[index])) {
+            const wpm = splittedScript[index].match(/\d+/g);
+            if (wpm) onWpmChange(Number(wpm[0]));
+            setSplittetScript(splittedScript.filter((w, i) => i !== index));
+            console.log(wpm);
+        }
+    }, [index, splittedScript, onWpmChange, setSplittetScript]);
+
+    useEffect(() => {
         if (index > 0 && index >= words.length) {
             handleReset();
             setLoops((l) => l - 1);
+            setSplittetScript(script.split(" "))
         }
-    }, [index, words, handleReset, setLoops]);
+    }, [index, words, script, handleReset, setLoops, setSplittetScript]);
 
     useEffect(() => {
         if (menuOpen) {
@@ -61,7 +72,8 @@ const App = () => {
 
     const handleScriptChange = (value: string) => {
         setScript(value);
-        setWords(value.split(/\s+/gi));
+        setSplittetScript(value.split(/\s+/gi));
+        setWords(value.split(/\s+/gi).filter((w) => !w.startsWith("<")));
         handleReset();
     };
 

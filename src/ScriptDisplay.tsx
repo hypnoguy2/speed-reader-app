@@ -51,6 +51,7 @@ export const useScript = () => {
     };
 
     const handleWPMChange = (newWPM: number) => {
+        if (newWPM === wpm) return;
         clearInterval(countRef.current);
         setWPM(newWPM);
         if (isActive && isRunning)
