@@ -1,25 +1,25 @@
-import { useEffect, useRef, useState } from "react";
-import { Container } from "react-bootstrap";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
+
 import { useScript } from "./ScriptDisplay";
+import ScriptEditor from "./ScriptEditor";
 import { loremIpsum } from "./Scripts";
 import MenuContainer from "./SettingsContainer";
-import Strobe from "./Strobe";
 
 const App = () => {
-    const [strobo] = useState(false);
-    const [show, setShow] = useState(true);
-    const [fps, setFps] = useState(1);
-    const [fontSize, setFontSize] = useState("10vw");
+    const [menuOpen, setMenuOpen] = useState(true);
+    const [editorOpen, setEditorOpen] = useState(false);
+    const [fontSize, setFontSize] = useState("10");
     const [script, setScript] = useState(loremIpsum);
     const [words, setWords] = useState(script.split(" "));
-    const [loops, setLoops] = useState(0);
+    const [loops, setLoops] = useState(1);
 
     const {
         isRunning,
         isActive,
         index,
         wpm,
-        handleWPMChange,
+        handleWPMChange: onWpmChange,
         handleStart,
         handleResume,
         handlePause,
@@ -29,62 +29,128 @@ const App = () => {
     const renderTime = useRef(0);
 
     useEffect(() => {
-        console.log("interval ", performance.now() - renderTime.current, " ", fps);
+        console.log("interval ", performance.now() - renderTime.current);
 
         renderTime.current = performance.now();
     });
 
     useEffect(() => {
-        if (index > 0 && index >= words.length - 1) {
+        if (index > 0 && index >= words.length) {
             handleReset();
-            setLoops((l) => l + 1);
+            setLoops((l) => l - 1);
         }
     }, [index, words, handleReset, setLoops]);
 
     useEffect(() => {
-        if (show) {
+        if (menuOpen) {
             if (isRunning) handlePause();
         } else {
             if (isActive && !isRunning) handleResume();
-            if (!isActive && loops === 0) handleStart();
+            if (!isActive && loops !== 0) handleStart();
         }
-    }, [show, loops, isRunning, isActive, handleStart, handleResume, handlePause]);
+    }, [menuOpen, loops, isRunning, isActive, handleStart, handleResume, handlePause]);
 
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
-            if (ev.key === "s") setShow(true);
+            if (ev.key === "s") setMenuOpen(true);
         };
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [setShow]);
+    }, [setMenuOpen]);
 
     const handleScriptChange = (value: string) => {
         setScript(value);
-        setWords(value.split(/\s+/));
+        setWords(value.split(/\s+/gi));
         handleReset();
+    };
+
+    const handleWPMChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        if (ev.target.validity.valid) {
+            onWpmChange(Number(ev.target.value));
+        }
+    };
+
+    const handleFontSizeChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        if (ev.target.validity.valid) setFontSize(ev.target.value);
+    };
+
+    const handleLoopsChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        if (ev.target.validity.valid) setLoops(Number(ev.target.value));
     };
 
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            {!show && strobo && <Strobe fps={fps} />}
             <div className="text-wrapper">
-                <div className="text">{words[index]}</div>
+                <div className="text" style={{ fontSize: fontSize + "vw" }}>
+                    {words[index]}
+                </div>
             </div>
             <MenuContainer
-                show={show}
+                show={menuOpen}
                 backdrop={false}
                 placement="end"
-                fps={fps}
+                onHide={() => setMenuOpen(false)}>
+                <Stack gap={3}>
+                    <ListGroup variant="flush">
+                        <ListGroup.Item>
+                            <Form.Label>WPM (Words Per Second)</Form.Label>
+                            <Form.Control
+                                type="number"
+                                value={wpm}
+                                onChange={handleWPMChange}
+                                max={1000}
+                            />
+                            <Form.Text>The value has to be between 100 and 700.</Form.Text>
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                            <Form.Label htmlFor="font-size-input">Font size</Form.Label>
+                            <Form.Control
+                                type="number"
+                                value={fontSize}
+                                onChange={handleFontSizeChange}
+                                min={1}
+                                step={0.1}
+                            />
+                            <Form.Text>Fontsize in vw (viewport width).</Form.Text>
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                            <Form.Label>Number of Loops</Form.Label>
+                            <Form.Control
+                                type="number"
+                                max={10}
+                                value={loops}
+                                min={-1}
+                                onChange={handleLoopsChange}
+                            />
+                            <Form.Text>
+                                0 loops means no words, 1-x means 1-x loops, -1 means infinite
+                                loops.
+                            </Form.Text>
+                        </ListGroup.Item>
+                    </ListGroup>
+                    <hr />
+                    <Accordion>
+                        <Accordion.Item eventKey="0">
+                            <Accordion.Header>Script</Accordion.Header>
+                            <Accordion.Body className="p-0">
+                                <Form.Control
+                                    as="textarea"
+                                    readOnly
+                                    style={{ height: 300 }}
+                                    value={script}
+                                />
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
+                    <Button onClick={() => setEditorOpen(true)}>Edit Script</Button>
+                </Stack>
+            </MenuContainer>
+            <ScriptEditor
+                show={editorOpen}
                 script={script}
-                wpm={wpm}
-                fontSize={fontSize}
-                onFontSizeChange={setFontSize}
-                onFpsChange={setFps}
-                onWpmChange={handleWPMChange}
                 onScriptChange={handleScriptChange}
-                onHide={() => setShow((show) => !show)}
-            />
+                onHide={() => setEditorOpen(false)}></ScriptEditor>
         </Container>
     );
 };

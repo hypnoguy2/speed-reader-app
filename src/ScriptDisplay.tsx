@@ -21,6 +21,7 @@ export const useScript = () => {
     ); // empty interval to create a reusable countRef with useRef
 
     const handleStart = () => {
+        console.log("handleStart");
         setIsActive(true);
         setIsRunning(true);
         countRef.current = setInterval(() => {
