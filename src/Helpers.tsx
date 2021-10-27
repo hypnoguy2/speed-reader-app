@@ -1,7 +1,10 @@
+import JsxParser from "react-jsx-parser";
+
 export const  pivot = (word: string) => {
     if (word === undefined) return "";
     
     var length = word.length;
+    let start, end, result;
     // Longer words are "right-weighted" for easier readability.
     if (length < 6) {
         var bit = 1;
@@ -14,10 +17,9 @@ export const  pivot = (word: string) => {
             bit = bit * -1;
         }
 
-        var start = word.slice(0, word.length / 2);
-        var end = word.slice(word.length / 2, word.length);
+        start = word.slice(0, word.length / 2);
+        end = word.slice(word.length / 2, word.length);
 
-        var result;
         result = "<span class='spray_start'>" + start.slice(0, start.length - 1);
         result = result + "</span><span class='spray_pivot'>";
         result = result + start.slice(start.length - 1, start.length);
@@ -29,10 +31,9 @@ export const  pivot = (word: string) => {
         var tail = 22 - (word.length + 7);
         word = "......." + word + ".".repeat(tail);
 
-        var start = word.slice(0, word.length / 2);
-        var end = word.slice(word.length / 2, word.length);
+        start = word.slice(0, word.length / 2);
+        end = word.slice(word.length / 2, word.length);
 
-        var result;
         result = "<span class='spray_start'>" + start.slice(0, start.length - 1);
         result = result + "</span><span class='spray_pivot'>";
         result = result + start.slice(start.length - 1, start.length);
@@ -40,7 +41,6 @@ export const  pivot = (word: string) => {
         result = result + end;
         result = result + "</span>";
     }
-    console.log(result);
     result = result.replace(/\./g, "<span class='invisible'>.</span>");
-    return result;
+    return <JsxParser jsx={result} />;
 }

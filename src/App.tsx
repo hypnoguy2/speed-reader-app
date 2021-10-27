@@ -112,13 +112,15 @@ const App = () => {
         const handleSDown = (ev: KeyboardEvent) => {
             if (ev.key === "s") {
                 setFontSize(startOptions.fontSize);
+                setLoops(startOptions.loops);
+                onWpmChange(startOptions.wpm);
                 setMenuOpen(true);
             }
         };
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [startOptions]);
+    }, [startOptions, onWpmChange]);
 
     // Option change handlers
     const handleScriptChange = (value: string) => {
@@ -143,18 +145,13 @@ const App = () => {
         if (ev.target.validity.valid) setLoops(ev.target.value);
     };
 
-    console.log(pivot(words[index]))
-
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            <Strobe flashOptions={{flashFrames: 15, loopFrames: 30}} />
+            {isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
             <div id="spritzer"></div>
             <div className="text-wrapper">
-                <div
-                    className="text"
-                    style={{ fontSize: fontSize + "vw" }}
-                    >
-                    <div dangerouslySetInnerHTML={{ __html: pivot(words[index]) }} />
+                <div className="text" style={{ fontSize: fontSize + "vw" }}>
+                    {pivot(words[index])}
                 </div>
             </div>
             <MenuContainer
