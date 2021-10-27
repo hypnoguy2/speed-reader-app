@@ -44,3 +44,13 @@ export const  pivot = (word: string) => {
     result = result.replace(/\./g, "<span class='invisible'>.</span>");
     return <JsxParser jsx={result} />;
 }
+
+export const processScript = (s: string): string[] => {
+    // removes whitespaces in options, then splits on whitespaces
+    return splitString(s.replace(/<[^>]*>/gi, (match) => match.replace(/\s+/g, "")));
+};
+
+export const splitString = (s: string): string[] => {
+    return s.split(/\s+/g);
+};
+

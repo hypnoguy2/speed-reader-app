@@ -1,21 +1,12 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
-import { pivot } from "./Helpers";
+import { pivot, processScript } from "./Helpers";
 
 import { useScript } from "./ScriptDisplay";
 import ScriptEditor from "./ScriptEditor";
 import { induction } from "./Scripts";
 import MenuContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
-
-const processScript = (s: string): string[] => {
-    // removes whitespaces in options, then splits on whitespaces
-    return splitString(s.replace(/<[^>]*>/gi, (match) => match.replace(/\s+/g, "")));
-};
-
-const splitString = (s: string): string[] => {
-    return s.split(/\s+/g);
-};
 
 interface OptionManagerType {
     [key: string]: { changeFunction: (value: string | number) => void };
@@ -31,6 +22,9 @@ const App = () => {
 
     const [fontSize, setFontSize] = useState("10");
     const [loops, setLoops] = useState("1");
+
+    const [usePivot, setUsePivot] = useState(true);
+    const [strobo, setStrobo] = useState(false);
 
     // hook to run over index
     const {
@@ -145,13 +139,21 @@ const App = () => {
         if (ev.target.validity.valid) setLoops(ev.target.value);
     };
 
+    const handlePivotChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        setUsePivot(ev.target.checked);
+    };
+
+    const handleStroboChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        setStrobo(ev.target.checked);
+    };
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            {isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
+            {strobo && isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
             <div id="spritzer"></div>
             <div className="text-wrapper">
                 <div className="text" style={{ fontSize: fontSize + "vw" }}>
-                    {pivot(words[index])}
+                    {isRunning && (usePivot ? pivot(words[index]) : words[index])}
                 </div>
             </div>
             <MenuContainer
@@ -160,58 +162,106 @@ const App = () => {
                 placement="end"
                 onHide={() => setMenuOpen(false)}>
                 <Stack gap={3}>
-                    <ListGroup variant="flush">
-                        <ListGroup.Item>
-                            <Form.Label>WPM (Words Per Second)</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={wpm}
-                                onChange={handleWPMChange}
-                                max={1000}
-                            />
-                            <Form.Text>The value has to be between 100 and 700.</Form.Text>
-                        </ListGroup.Item>
-                        <ListGroup.Item>
-                            <Form.Label htmlFor="font-size-input">Font size</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={fontSize}
-                                onChange={handleFontSizeChange}
-                                min={1}
-                                step={0.1}
-                            />
-                            <Form.Text>Fontsize in vw (viewport width).</Form.Text>
-                        </ListGroup.Item>
-                        <ListGroup.Item>
-                            <Form.Label>Number of Loops</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={loops}
-                                onChange={handleLoopsChange}
-                                max={10}
-                                min={-1}
-                            />
-                            <Form.Text>
-                                0 loops means no words, 1-x means 1-x loops, -1 means infinite
-                                loops.
-                            </Form.Text>
-                        </ListGroup.Item>
-                    </ListGroup>
-                    <hr />
-                    <Accordion>
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header>Script</Accordion.Header>
-                            <Accordion.Body className="p-0">
+                    <Stack gap={0}>
+                        <Accordion className="mb-3">
+                            <Accordion.Item eventKey="0">
+                                <Accordion.Header>Script</Accordion.Header>
+                                <Accordion.Body className="p-0">
+                                    <Form.Control
+                                        as="textarea"
+                                        readOnly
+                                        style={{ height: 300 }}
+                                        value={script}
+                                    />
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        </Accordion>
+                        <Button onClick={() => setEditorOpen(true)}>Edit Script</Button>
+                        <hr />
+                    </Stack>
+                    <Stack gap={0}>
+                        <h6>Script settings</h6>
+                        <ListGroup>
+                            <ListGroup.Item>
+                                <Form.Label>WPM (Words Per Second)</Form.Label>
                                 <Form.Control
-                                    as="textarea"
-                                    readOnly
-                                    style={{ height: 300 }}
-                                    value={script}
+                                    type="number"
+                                    value={wpm}
+                                    onChange={handleWPMChange}
+                                    max={1000}
                                 />
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    </Accordion>
-                    <Button onClick={() => setEditorOpen(true)}>Edit Script</Button>
+                                <Form.Text>The value has to be between 100 and 700.</Form.Text>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                                <Form.Label htmlFor="font-size-input">Font size</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    value={fontSize}
+                                    onChange={handleFontSizeChange}
+                                    min={1}
+                                    step={0.1}
+                                />
+                                <Form.Text>Fontsize in vw (viewport width).</Form.Text>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                                <Form.Label>Number of Loops</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    value={loops}
+                                    onChange={handleLoopsChange}
+                                    max={10}
+                                    min={-1}
+                                />
+                                <Form.Text>
+                                    0 loops means no words, 1-n means n loops, -1 means infinite
+                                    loops.
+                                </Form.Text>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                                <Form.Check
+                                    type="checkbox"
+                                    id="use-pivot"
+                                    label="Use pivot centering"
+                                    checked={usePivot}
+                                    onChange={handlePivotChange}
+                                />
+                                <ListGroup>
+                                    <ListGroup.Item variant={!usePivot ? "secondary" : ""}>
+                                        <Form.Label>Pivot color</Form.Label>
+                                        <Form.Control
+                                            disabled={!usePivot}
+                                            type="color"
+                                            defaultValue="#de0000"
+                                        />
+                                    </ListGroup.Item>
+                                </ListGroup>
+                            </ListGroup.Item>
+                        </ListGroup>
+                    </Stack>
+                    <Stack gap={0}>
+                        <h6>Strobe settings</h6>
+                        <ListGroup>
+                            <ListGroup.Item>
+                                <Form.Check
+                                    type="checkbox"
+                                    id="use-strobo"
+                                    label="Activate strobo"
+                                    checked={strobo}
+                                    onChange={handleStroboChange}
+                                />
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                                <Form.Label>FlashFrames</Form.Label>
+                                <Form.Control type="number" disabled />
+                                <Form.Text>Amount of white frames.</Form.Text>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                                <Form.Label>Frames</Form.Label>
+                                <Form.Control type="number" disabled />
+                                <Form.Text>Amount of total frames.</Form.Text>
+                            </ListGroup.Item>
+                        </ListGroup>
+                    </Stack>
                 </Stack>
             </MenuContainer>
             <ScriptEditor
