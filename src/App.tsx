@@ -1,10 +1,12 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
+import { pivot } from "./Helpers";
 
 import { useScript } from "./ScriptDisplay";
 import ScriptEditor from "./ScriptEditor";
-import { loremIpsum } from "./Scripts";
+import { induction } from "./Scripts";
 import MenuContainer from "./SettingsContainer";
+import Strobe from "./Strobe";
 
 const processScript = (s: string): string[] => {
     // removes whitespaces in options, then splits on whitespaces
@@ -23,7 +25,7 @@ const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
     const [editorOpen, setEditorOpen] = useState(false);
 
-    const [script, setScript] = useState(loremIpsum);
+    const [script, setScript] = useState(induction);
     const [splittedScript, setSplittetScript] = useState(processScript(script));
     const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
 
@@ -60,7 +62,7 @@ const App = () => {
     }, [onWpmChange]);
 
     useEffect(() => {
-        // console.log("interval ", performance.now() - renderTime.current);
+        console.log("interval ", performance.now() - renderTime.current);
 
         renderTime.current = performance.now();
     });
@@ -141,11 +143,18 @@ const App = () => {
         if (ev.target.validity.valid) setLoops(ev.target.value);
     };
 
+    console.log(pivot(words[index]))
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
+            <Strobe flashOptions={{flashFrames: 15, loopFrames: 30}} />
+            <div id="spritzer"></div>
             <div className="text-wrapper">
-                <div className="text" style={{ fontSize: fontSize + "vw" }}>
-                    {isRunning && words[index]}
+                <div
+                    className="text"
+                    style={{ fontSize: fontSize + "vw" }}
+                    >
+                    <div dangerouslySetInnerHTML={{ __html: pivot(words[index]) }} />
                 </div>
             </div>
             <MenuContainer
