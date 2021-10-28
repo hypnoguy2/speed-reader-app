@@ -1,3 +1,4 @@
+import { identity } from "lodash";
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { processScript } from "./Helpers";
 
@@ -12,6 +13,10 @@ interface OptionManagerType {
     [key: string]: (value: string | number) => void;
 }
 
+/**
+ * A hook to update an index at a certain rate (wpm)
+ * @returns status flags and controls for the index runner
+ */
 export const useIndex = () => {
     const [index, setIndex] = useState(0);
     const [isActive, setIsActive] = useState(false);
@@ -83,23 +88,17 @@ export const useIndex = () => {
     };
 };
 
-export const useScript = (initialScript: string) => {
-    const {
-        index,
-        wpm,
-        isActive,
-        isRunning,
-        handleStart,
-        handlePause,
-        handleResume,
-        handleReset,
-        handleStop,
-        setWPM,
-    } = useIndex();
+/**
+ * A hook that uses the index hook to go through a script. The script can have options.
+ * @param initialScript script
+ * @returns
+ */
+export const useScript = (initialScript: string, optionManager?: OptionManagerType) => {
+    const { index, handlePause, handleResume, handleStop, setWPM, ...rest } = useIndex();
 
     const [script] = useState(initialScript);
 
-    const splittedRef = useRef(processScript(script));
+    const splittedRef = useRef(["", ...processScript(script)]);
 
     // empty interval/timeout to create reusable refs with useRef
     const breakRef = useRef(
@@ -132,8 +131,9 @@ export const useScript = (initialScript: string) => {
             wpm: setWPM,
             halt: haltFor,
             break: breakFor,
+            ...optionManager,
         } as OptionManagerType;
-    }, [setWPM, breakFor, haltFor]);
+    }, [setWPM, breakFor, haltFor, optionManager]);
 
     useEffect(() => {
         const nextWord = splittedRef.current[index + 1];
@@ -156,48 +156,39 @@ export const useScript = (initialScript: string) => {
 
     return {
         index,
-        wpm,
-        isActive,
-        isRunning,
         currentWord: splittedRef.current[index],
         words: splittedRef.current,
-        handleStart,
         handlePause,
         handleResume,
         handleStop,
-        handleReset,
         breakFor,
         setWPM,
+        ...rest,
+    };
+};
+
+export const useScriptDisplay = (initialScript: string) => {
+    const { index, ...script } = useScript(initialScript, {
+        log: (val) => {
+            console.log(val);
+        },
+    });
+
+    const [element, setElement] = useState<ReactNode>(<span>{index}</span>);
+
+    useEffect(() => {
+        setElement(<span>{index}</span>);
+    }, [index]);
+
+    return {
+        index,
+        element,
+        ...script,
     };
 };
 
 const ScriptDisplay = (props: ScriptDisplayProps) => {
-    // const {
-    //     isRunning,
-    //     isActive,
-    //     index,
-    //     current,
-    //     handleStart,
-    //     handleResume: resume,
-    //     handlePause,
-    // } = useScript(props.script, props.wpm);
-
-    // const handleResume = () => {
-    //     if (isActive && !isRunning) resume();
-    //     if (!isActive) handleStart();
-    // };
-
-    // const handleScriptEvent = (ev: Event) => {
-    //     const action = (ev as CustomEvent).detail;
-    //     if (action === "resume") handleResume();
-    //     if (action === "pause") handlePause();
-    // };
-
-    // useEffect(() => {
-    //     document.addEventListener(ScriptEvent, handleScriptEvent);
-
-    //     return () => document.removeEventListener(ScriptEvent, handleScriptEvent);
-    // });
+    //const {element, handleStart, handlePause, ...} = useScriptDisplay(script);
 
     return (
         <div className="text-wrapper">

@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
 import { pivot, processScript } from "./Helpers";
 
-import { useScript } from "./ScriptDisplay";
+import { useScriptDisplay } from "./ScriptDisplay";
 import ScriptEditor from "./ScriptEditor";
 import { induction } from "./Scripts";
 import MenuContainer from "./SettingsContainer";
@@ -27,7 +27,7 @@ const App = () => {
     const [strobo, setStrobo] = useState(false);
 
     const {
-        currentWord,
+        element,
         words,
         index,
         isActive,
@@ -36,11 +36,9 @@ const App = () => {
         handleStart,
         handlePause,
         handleResume,
-        handleStop,
-        handleReset,
         breakFor,
         setWPM,
-    } = useScript(script);
+    } = useScriptDisplay(script);
 
     const [startOptions, setStartOptions] = useState({
         wpm,
@@ -69,55 +67,6 @@ const App = () => {
             setStartOptions({ wpm, loops, fontSize });
         }
     }, [menuOpen, wpm, loops, fontSize]);
-
-    // effect to get options from tags
-    // useEffect(() => {
-    //     if (splittedScript[index] && splittedScript[index].startsWith("<")) {
-    //         for (const key in optionsManager) {
-    //             const option = splittedScript[index].match(new RegExp(key + "=\\d+"));
-    //             if (option) {
-    //                 const newValue = option[0].match(/\d+/);
-    //                 if (newValue) optionsManager[key](newValue[0]);
-    //             }
-    //         }
-
-    //         setSplittetScript(splittedScript.filter((w, i) => i !== index));
-    //     }
-    // }, [index, splittedScript, optionsManager]);
-
-    // Effect to loop script
-    // useEffect(() => {
-    //     if (index > 0 && index >= words.length) {
-    //         handleReset();
-    //         setLoops((l) => Number(l) - 1 + "");
-    //         setSplittetScript(processScript(script));
-    //     }
-    // }, [index, words, script, handleReset]);
-
-    // Effect to start and pause the script on menu toggle
-    // useEffect(() => {
-    //     if (menuOpen) {
-    //         if (isRunning) handlePause();
-    //     } else {
-    //         if (isActive && !isRunning) handleResume();
-    //         if (!isActive && loops !== "0") handleStart();
-    //     }
-    // }, [menuOpen, loops, isRunning, isActive, handleStart, handleResume, handlePause]);
-
-    // Effect to open menu when pressing s
-    // useEffect(() => {
-    //     const handleSDown = (ev: KeyboardEvent) => {
-    //         if (ev.key === "s") {
-    //             setFontSize(startOptions.fontSize);
-    //             setLoops(startOptions.loops);
-    //             setWPM(startOptions.wpm);
-    //             setMenuOpen(true);
-    //         }
-    //     };
-    //     document.addEventListener("keydown", handleSDown);
-
-    //     return () => document.removeEventListener("keydown", handleSDown);
-    // }, [startOptions, setWPM]);
 
     // --- effects for useScript implementation ---
     useEffect(() => {
@@ -188,7 +137,7 @@ const App = () => {
             <div id="spritzer"></div>
             <div className="text-wrapper">
                 <div className="text" style={{ fontSize: fontSize + "vw" }}>
-                    {isActive && (usePivot ? pivot(currentWord) : currentWord)}
+                    {isActive && element}
                 </div>
             </div>
             <MenuContainer
