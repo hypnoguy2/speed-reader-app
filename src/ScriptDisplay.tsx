@@ -1,4 +1,5 @@
-import { ReactNode, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { processScript } from "./Helpers";
 
 interface ScriptDisplayProps {
     script?: string;
@@ -7,60 +8,83 @@ interface ScriptDisplayProps {
     children?: ReactNode;
 }
 
-export const ScriptEvent = "script";
+interface OptionManagerType {
+    [key: string]: (value: string | number) => void;
+}
 
-export const useScript = () => {
+export const useIndex = () => {
     const [index, setIndex] = useState(0);
-    const [wpm, setWPM] = useState(300);
     const [isActive, setIsActive] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
+
+    const wpmRef = useRef(300);
     const countRef = useRef(
         setInterval(() => {
             return;
         }, 1000000)
     ); // empty interval to create a reusable countRef with useRef
 
-    const handleStart = () => {
-        console.log("handleStart");
+    const handlePause = useCallback(() => {
+        clearInterval(countRef.current);
+        setIsRunning(false);
+    }, []);
+
+    const handleResume = useCallback(() => {
+        setIsRunning(true);
+        clearInterval(countRef.current);
+        countRef.current = setInterval(() => {
+            setIndex((index) => index + 1);
+        }, 60000 / wpmRef.current);
+    }, []);
+
+    const handleStart = useCallback(() => {
         setIsActive(true);
         setIsRunning(true);
         countRef.current = setInterval(() => {
-            setIndex((index) => {
-                return index + 1;
-            });
-        }, 60000 / wpm);
-    };
+            setIndex((index) => index + 1);
+        }, 60000 / wpmRef.current);
+    }, []);
 
-    const handlePause = () => {
+    const handleStop = useCallback(() => {
         clearInterval(countRef.current);
         setIsRunning(false);
-    };
+        setIsActive(false);
+    }, []);
 
-    const handleResume = () => {
-        setIsRunning(true);
-        countRef.current = setInterval(() => {
-            setIndex((timer) => timer + 1);
-        }, 60000 / wpm);
-    };
-
-    const handleReset = () => {
+    const handleReset = useCallback(() => {
         clearInterval(countRef.current);
         setIsActive(false);
         setIsRunning(false);
         setIndex(0);
-    };
+    }, []);
 
-    const handleWPMChange = (newWPM: number) => {
-        if (newWPM === wpm) return;
-        clearInterval(countRef.current);
-        setWPM(newWPM);
-        if (isActive && isRunning)
-            countRef.current = setInterval(() => {
-                setIndex((index) => index + 1);
-            }, 60000 / newWPM);
-    };
+    const setWPM = useCallback(
+        (newWPM: number) => {
+            wpmRef.current = newWPM;
+            if (isRunning) {
+                handlePause();
+                handleResume();
+            }
+        },
+        [isRunning, handlePause, handleResume]
+    );
 
     return {
+        index,
+        wpm: wpmRef.current,
+        isActive,
+        isRunning,
+        handleStart,
+        handlePause,
+        handleResume,
+        handleReset,
+        handleStop,
+        setWPM,
+    };
+};
+
+export const useScript = (initialScript: string) => {
+    const {
         index,
         wpm,
         isActive,
@@ -69,7 +93,81 @@ export const useScript = () => {
         handlePause,
         handleResume,
         handleReset,
-        handleWPMChange,
+        handleStop,
+        setWPM,
+    } = useIndex();
+
+    const [script] = useState(initialScript);
+
+    const splittedRef = useRef(processScript(script));
+
+    // empty interval/timeout to create reusable refs with useRef
+    const breakRef = useRef(
+        setTimeout(() => {
+            return;
+        }, 1000000)
+    );
+
+    const breakFor = useCallback(
+        (value: number) => {
+            splittedRef.current.splice(index + 2, 0, "", `<halt=${value}>`);
+        },
+        [index]
+    );
+
+    const haltFor = useCallback(
+        (value: number) => {
+            handlePause();
+            clearTimeout(breakRef.current);
+            breakRef.current = setTimeout(() => {
+                handleResume();
+            }, value * 1000);
+        },
+        [handlePause, handleResume]
+    );
+
+    // Reading in script options
+    const optionsManager: OptionManagerType = useMemo(() => {
+        return {
+            wpm: setWPM,
+            halt: haltFor,
+            break: breakFor,
+        } as OptionManagerType;
+    }, [setWPM, breakFor, haltFor]);
+
+    useEffect(() => {
+        const nextWord = splittedRef.current[index + 1];
+        if (nextWord && nextWord.startsWith("<")) {
+            for (const key in optionsManager) {
+                const option = nextWord.match(new RegExp(key + "=\\d+"));
+                if (option) {
+                    const newValue = option[0].match(/\d+/);
+                    if (newValue) optionsManager[key](newValue[0]);
+                }
+            }
+
+            splittedRef.current = splittedRef.current.filter((w, i) => i !== index + 1);
+        }
+    }, [index, optionsManager]);
+
+    useEffect(() => {
+        if (index >= splittedRef.current.length) handleStop();
+    }, [index, handleStop]);
+
+    return {
+        index,
+        wpm,
+        isActive,
+        isRunning,
+        currentWord: splittedRef.current[index],
+        words: splittedRef.current,
+        handleStart,
+        handlePause,
+        handleResume,
+        handleStop,
+        handleReset,
+        breakFor,
+        setWPM,
     };
 };
 

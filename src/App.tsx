@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
 import { pivot, processScript } from "./Helpers";
 
@@ -8,9 +8,9 @@ import { induction } from "./Scripts";
 import MenuContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
 
-interface OptionManagerType {
-    [key: string]: { changeFunction: (value: string | number) => void };
-}
+// interface OptionManagerType {
+//     [key: string]: (value: string | number) => void;
+// }
 
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
@@ -18,7 +18,7 @@ const App = () => {
 
     const [script, setScript] = useState(induction);
     const [splittedScript, setSplittetScript] = useState(processScript(script));
-    const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
+    // const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
 
     const [fontSize, setFontSize] = useState("10");
     const [loops, setLoops] = useState("1");
@@ -26,18 +26,21 @@ const App = () => {
     const [usePivot, setUsePivot] = useState(true);
     const [strobo, setStrobo] = useState(false);
 
-    // hook to run over index
     const {
-        isRunning,
-        isActive,
+        currentWord,
+        words,
         index,
+        isActive,
+        isRunning,
         wpm,
-        handleWPMChange: onWpmChange,
         handleStart,
-        handleResume,
         handlePause,
+        handleResume,
+        handleStop,
         handleReset,
-    } = useScript();
+        breakFor,
+        setWPM,
+    } = useScript(script);
 
     const [startOptions, setStartOptions] = useState({
         wpm,
@@ -46,20 +49,20 @@ const App = () => {
     });
 
     // Performance checker
-    const renderTime = useRef(0);
+    // const renderTime = useRef(0);
+    // useEffect(() => {
+    //     console.log("interval ", performance.now() - renderTime.current);
 
-    const optionsManager: OptionManagerType = useMemo(() => {
-        return {
-            wpm: { changeFunction: onWpmChange },
-            fontSize: { changeFunction: setFontSize },
-        } as OptionManagerType;
-    }, [onWpmChange]);
+    //     renderTime.current = performance.now();
+    // });
 
-    useEffect(() => {
-        console.log("interval ", performance.now() - renderTime.current);
-
-        renderTime.current = performance.now();
-    });
+    // const optionsManager: OptionManagerType = useMemo(() => {
+    //     return {
+    //         wpm: setWPM,
+    //         fontSize: setFontSize,
+    //         pause: handlePause,
+    //     } as OptionManagerType;
+    // }, [setWPM, handlePause]);
 
     useEffect(() => {
         if (menuOpen) {
@@ -68,66 +71,98 @@ const App = () => {
     }, [menuOpen, wpm, loops, fontSize]);
 
     // effect to get options from tags
-    useEffect(() => {
-        if (splittedScript[index] && splittedScript[index].startsWith("<")) {
-            for (const key in optionsManager) {
-                const option = splittedScript[index].match(new RegExp(key + "=\\d+"));
-                if (option) {
-                    const newValue = option[0].match(/\d+/);
-                    if (newValue) optionsManager[key].changeFunction(newValue[0]);
-                }
-            }
+    // useEffect(() => {
+    //     if (splittedScript[index] && splittedScript[index].startsWith("<")) {
+    //         for (const key in optionsManager) {
+    //             const option = splittedScript[index].match(new RegExp(key + "=\\d+"));
+    //             if (option) {
+    //                 const newValue = option[0].match(/\d+/);
+    //                 if (newValue) optionsManager[key](newValue[0]);
+    //             }
+    //         }
 
-            setSplittetScript(splittedScript.filter((w, i) => i !== index));
-        }
-    }, [index, splittedScript, optionsManager, onWpmChange]);
+    //         setSplittetScript(splittedScript.filter((w, i) => i !== index));
+    //     }
+    // }, [index, splittedScript, optionsManager]);
 
     // Effect to loop script
-    useEffect(() => {
-        if (index > 0 && index >= words.length) {
-            handleReset();
-            setLoops((l) => Number(l) - 1 + "");
-            setSplittetScript(processScript(script));
-        }
-    }, [index, words, script, handleReset]);
+    // useEffect(() => {
+    //     if (index > 0 && index >= words.length) {
+    //         handleReset();
+    //         setLoops((l) => Number(l) - 1 + "");
+    //         setSplittetScript(processScript(script));
+    //     }
+    // }, [index, words, script, handleReset]);
 
     // Effect to start and pause the script on menu toggle
-    useEffect(() => {
-        if (menuOpen) {
-            if (isRunning) handlePause();
-        } else {
-            if (isActive && !isRunning) handleResume();
-            if (!isActive && loops !== "0") handleStart();
-        }
-    }, [menuOpen, loops, isRunning, isActive, handleStart, handleResume, handlePause]);
+    // useEffect(() => {
+    //     if (menuOpen) {
+    //         if (isRunning) handlePause();
+    //     } else {
+    //         if (isActive && !isRunning) handleResume();
+    //         if (!isActive && loops !== "0") handleStart();
+    //     }
+    // }, [menuOpen, loops, isRunning, isActive, handleStart, handleResume, handlePause]);
 
     // Effect to open menu when pressing s
+    // useEffect(() => {
+    //     const handleSDown = (ev: KeyboardEvent) => {
+    //         if (ev.key === "s") {
+    //             setFontSize(startOptions.fontSize);
+    //             setLoops(startOptions.loops);
+    //             setWPM(startOptions.wpm);
+    //             setMenuOpen(true);
+    //         }
+    //     };
+    //     document.addEventListener("keydown", handleSDown);
+
+    //     return () => document.removeEventListener("keydown", handleSDown);
+    // }, [startOptions, setWPM]);
+
+    // --- effects for useScript implementation ---
+    useEffect(() => {
+        if (!menuOpen)
+            setTimeout(() => {
+                handleStart();
+            }, 1000);
+    }, [handleStart, menuOpen]);
+
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
             if (ev.key === "s") {
-                setFontSize(startOptions.fontSize);
-                setLoops(startOptions.loops);
-                onWpmChange(startOptions.wpm);
+                handlePause();
                 setMenuOpen(true);
+            }
+            if (ev.key === "p") {
+                if (!isActive) return;
+                if (isRunning) handlePause()
+                else handleResume();
+            }
+            if (ev.key === "b") {
+                breakFor(2);
+            }
+            if (ev.key === "w") {
+                setWPM(wpm === 300 ? 100 : 300);
             }
         };
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [startOptions, onWpmChange]);
+    }, [breakFor, handlePause, handleResume, isActive, isRunning, setWPM, wpm]);
+
+    // -----------------------------------------------
 
     // Option change handlers
     const handleScriptChange = (value: string) => {
         setScript(value);
         const splitted = processScript(value);
         setSplittetScript(splitted);
-        setWords(splitted.filter((w) => !w.startsWith("<")));
-        handleReset();
+        // setWords(splitted.filter((w) => !w.startsWith("<")));
     };
 
     const handleWPMChange = (ev: ChangeEvent<HTMLInputElement>) => {
         if (ev.target.validity.valid) {
-            onWpmChange(Number(ev.target.value));
+            // setWPM(Number(ev.target.value));
         }
     };
 
@@ -146,14 +181,14 @@ const App = () => {
     const handleStroboChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setStrobo(ev.target.checked);
     };
-
+    
     return (
         <Container className="h-100 w-100 p-0" fluid>
             {strobo && isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
             <div id="spritzer"></div>
             <div className="text-wrapper">
                 <div className="text" style={{ fontSize: fontSize + "vw" }}>
-                    {isRunning && (usePivot ? pivot(words[index]) : words[index])}
+                    {isActive && (usePivot ? pivot(currentWord) : currentWord)}
                 </div>
             </div>
             <MenuContainer
