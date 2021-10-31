@@ -1,4 +1,3 @@
-import { identity } from "lodash";
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { processScript } from "./Helpers";
 
@@ -94,11 +93,21 @@ export const useIndex = () => {
  * @returns
  */
 export const useScript = (initialScript: string, optionManager?: OptionManagerType) => {
-    const { index, handlePause, handleResume, handleStop, setWPM, ...rest } = useIndex();
+    const {
+        index,
+        handleStart,
+        handlePause,
+        handleResume,
+        handleStop,
+        handleReset,
+        setWPM,
+        ...rest
+    } = useIndex();
 
     const [script] = useState(initialScript);
 
     const splittedRef = useRef(["", ...processScript(script)]);
+    const loopRef = useRef(2);
 
     // empty interval/timeout to create reusable refs with useRef
     const breakRef = useRef(
@@ -106,6 +115,14 @@ export const useScript = (initialScript: string, optionManager?: OptionManagerTy
             return;
         }, 1000000)
     );
+
+    const resetScript = useCallback(() => {
+        splittedRef.current = ["", ...processScript(script)];
+    }, [script]);
+
+    const setLoops = useCallback((loops: number) => {
+        loopRef.current = loops;
+    }, []);
 
     const breakFor = useCallback(
         (value: number) => {
@@ -151,24 +168,34 @@ export const useScript = (initialScript: string, optionManager?: OptionManagerTy
     }, [index, optionsManager]);
 
     useEffect(() => {
-        if (index >= splittedRef.current.length) handleStop();
-    }, [index, handleStop]);
+        if (index >= splittedRef.current.length) {
+            loopRef.current = loopRef.current - 1;
+            if (loopRef.current === 0) handleStop();
+            else {
+                handleReset();
+                resetScript();
+                setTimeout(() => handleStart(), 1000);
+            }
+        }
+    }, [index, handleStop, handleReset, handleStart, resetScript]);
 
     return {
         index,
         currentWord: splittedRef.current[index],
         words: splittedRef.current,
+        handleStart,
         handlePause,
         handleResume,
         handleStop,
         breakFor,
         setWPM,
+        setLoops,
         ...rest,
     };
 };
 
 export const useScriptDisplay = (initialScript: string) => {
-    const { index, ...script } = useScript(initialScript, {
+    const { index, currentWord, ...script } = useScript(initialScript, {
         log: (val) => {
             console.log(val);
         },
@@ -177,8 +204,8 @@ export const useScriptDisplay = (initialScript: string) => {
     const [element, setElement] = useState<ReactNode>(<span>{index}</span>);
 
     useEffect(() => {
-        setElement(<span>{index}</span>);
-    }, [index]);
+        setElement(<span>{currentWord}</span>);
+    }, [currentWord]);
 
     return {
         index,

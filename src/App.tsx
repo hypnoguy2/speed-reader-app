@@ -84,7 +84,7 @@ const App = () => {
             }
             if (ev.key === "p") {
                 if (!isActive) return;
-                if (isRunning) handlePause()
+                if (isRunning) handlePause();
                 else handleResume();
             }
             if (ev.key === "b") {
@@ -130,7 +130,7 @@ const App = () => {
     const handleStroboChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setStrobo(ev.target.checked);
     };
-    
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
             {strobo && isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
