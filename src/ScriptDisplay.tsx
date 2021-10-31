@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { processScript } from "./Helpers";
 
 interface ScriptDisplayProps {
@@ -92,22 +92,26 @@ export const useIndex = () => {
  * @param initialScript script
  * @returns
  */
-export const useScript = (initialScript: string, optionManager?: OptionManagerType) => {
+export const useScript = (initialScript: string, manager?: OptionManagerType) => {
     const {
         index,
         handleStart,
         handlePause,
         handleResume,
-        handleStop,
+        handleStop: stopIndex,
         handleReset,
         setWPM,
         ...rest
     } = useIndex();
 
     const [script] = useState(initialScript);
+    // const [managers, setManagers] = useState<OptionManagerType>({ ...manager });
 
+    const indexRef = useRef(index);
     const splittedRef = useRef(["", ...processScript(script)]);
     const loopRef = useRef(2);
+
+    const managersRef = useRef<OptionManagerType>(manager || {});
 
     // empty interval/timeout to create reusable refs with useRef
     const breakRef = useRef(
@@ -116,20 +120,30 @@ export const useScript = (initialScript: string, optionManager?: OptionManagerTy
         }, 1000000)
     );
 
-    const resetScript = useCallback(() => {
-        splittedRef.current = ["", ...processScript(script)];
-    }, [script]);
-
     const setLoops = useCallback((loops: number) => {
         loopRef.current = loops;
     }, []);
 
-    const breakFor = useCallback(
-        (value: number) => {
-            splittedRef.current.splice(index + 2, 0, "", `<halt=${value}>`);
-        },
-        [index]
-    );
+    const setOptionManagers = useCallback((manager: OptionManagerType) => {
+        managersRef.current = { ...manager };
+    }, []);
+
+    const addOptionManagers = useCallback((manager: OptionManagerType) => {
+        managersRef.current = { ...managersRef.current, ...manager };
+    }, []);
+
+    const handleStop = useCallback(() => {
+        clearTimeout(breakRef.current);
+        stopIndex();
+    }, [stopIndex]);
+
+    const resetScript = useCallback(() => {
+        splittedRef.current = ["", ...processScript(script)];
+    }, [script]);
+
+    const breakFor = useCallback((value: number) => {
+        splittedRef.current.splice(indexRef.current + 2, 0, "", `<halt=${value}>`);
+    }, []);
 
     const haltFor = useCallback(
         (value: number) => {
@@ -142,31 +156,25 @@ export const useScript = (initialScript: string, optionManager?: OptionManagerTy
         [handlePause, handleResume]
     );
 
-    // Reading in script options
-    const optionsManager: OptionManagerType = useMemo(() => {
-        return {
-            wpm: setWPM,
-            halt: haltFor,
-            break: breakFor,
-            ...optionManager,
-        } as OptionManagerType;
-    }, [setWPM, breakFor, haltFor, optionManager]);
-
+    // option handle effect
     useEffect(() => {
+        indexRef.current = index;
+
         const nextWord = splittedRef.current[index + 1];
         if (nextWord && nextWord.startsWith("<")) {
-            for (const key in optionsManager) {
+            for (const key in managersRef.current) {
                 const option = nextWord.match(new RegExp(key + "=\\d+"));
                 if (option) {
                     const newValue = option[0].match(/\d+/);
-                    if (newValue) optionsManager[key](newValue[0]);
+                    if (newValue) managersRef.current[key](newValue[0]);
                 }
             }
 
             splittedRef.current = splittedRef.current.filter((w, i) => i !== index + 1);
         }
-    }, [index, optionsManager]);
+    }, [index]);
 
+    // effect to handle script looping
     useEffect(() => {
         if (index >= splittedRef.current.length) {
             loopRef.current = loopRef.current - 1;
@@ -187,19 +195,32 @@ export const useScript = (initialScript: string, optionManager?: OptionManagerTy
         handlePause,
         handleResume,
         handleStop,
+        haltFor,
         breakFor,
         setWPM,
         setLoops,
+        setOptionManagers,
+        addOptionManagers,
         ...rest,
     };
 };
 
 export const useScriptDisplay = (initialScript: string) => {
-    const { index, currentWord, ...script } = useScript(initialScript, {
-        log: (val) => {
-            console.log(val);
-        },
-    });
+    const { index, currentWord, setWPM, haltFor, breakFor, addOptionManagers, ...script } =
+        useScript(initialScript, {
+            log: (val) => {
+                console.log(val);
+            },
+        });
+
+    // Reading in script options
+    useEffect(() => {
+        addOptionManagers({
+            wpm: setWPM,
+            halt: haltFor,
+            break: breakFor,
+        } as OptionManagerType);
+    }, [addOptionManagers, breakFor, haltFor, setWPM]);
 
     const [element, setElement] = useState<ReactNode>(<span>{index}</span>);
 
@@ -210,6 +231,8 @@ export const useScriptDisplay = (initialScript: string) => {
     return {
         index,
         element,
+        setWPM,
+        breakFor,
         ...script,
     };
 };

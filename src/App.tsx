@@ -36,6 +36,7 @@ const App = () => {
         handleStart,
         handlePause,
         handleResume,
+        handleStop,
         breakFor,
         setWPM,
     } = useScriptDisplay(script);
@@ -78,7 +79,7 @@ const App = () => {
 
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
-            if (ev.key === "s") {
+            if (ev.key === "m") {
                 handlePause();
                 setMenuOpen(true);
             }
@@ -86,6 +87,9 @@ const App = () => {
                 if (!isActive) return;
                 if (isRunning) handlePause();
                 else handleResume();
+            }
+            if (ev.key === "s") {
+                handleStop();
             }
             if (ev.key === "b") {
                 breakFor(2);
@@ -97,7 +101,7 @@ const App = () => {
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [breakFor, handlePause, handleResume, isActive, isRunning, setWPM, wpm]);
+    }, [breakFor, handlePause, handleResume, handleStop, isActive, isRunning, setWPM, wpm]);
 
     // -----------------------------------------------
 
