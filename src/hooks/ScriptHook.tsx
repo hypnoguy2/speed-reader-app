@@ -77,10 +77,10 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         const nextWord = splittedRef.current[index + 1];
         if (nextWord && nextWord.startsWith("<")) {
             for (const key in managersRef.current) {
-                const option = nextWord.match(new RegExp(key + "=\\d+"));
+                const option = nextWord.match(new RegExp(key + "=[^,>]+"));
                 if (option) {
-                    const newValue = option[0].match(/\d+/);
-                    if (newValue) managersRef.current[key](newValue[0]);
+                    const newValue = option[0].match(/=([^,>]+)/); // the paranthesis create a capture group
+                    if (newValue) managersRef.current[key](newValue[1]); // use value of capture group to get value
                 }
             }
 

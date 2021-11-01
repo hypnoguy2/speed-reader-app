@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { idFunc, OptionManagerType, PivotFunctionType } from "./Helpers";
 import { useScript } from "./hooks/ScriptHook";
 
@@ -10,7 +10,14 @@ export const useScriptDisplay = (initialScript: string) => {
             },
         });
 
+    const [element, setElement] = useState<ReactNode>(<></>);
     const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => idFunc);
+
+    const fontsizeRef = useRef("10vw");
+
+    const setFontsize = useCallback((value: string) => {
+        fontsizeRef.current = value;
+    }, []);
 
     // Reading in script options
     useEffect(() => {
@@ -18,13 +25,14 @@ export const useScriptDisplay = (initialScript: string) => {
             wpm: setWPM,
             halt: haltFor,
             break: breakFor,
+            fontsize: setFontsize,
         } as OptionManagerType);
-    }, [addOptionManagers, breakFor, haltFor, setWPM]);
-
-    const [element, setElement] = useState<ReactNode>(<></>);
+    }, [addOptionManagers, breakFor, haltFor, setFontsize, setWPM]);
 
     useEffect(() => {
-        setElement(pivotFunction(currentWord));
+        setElement(
+            <div style={{ fontSize: fontsizeRef.current }}>{pivotFunction(currentWord)}</div>
+        );
     }, [currentWord, pivotFunction]);
 
     return {
