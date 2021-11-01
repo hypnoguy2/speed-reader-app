@@ -92,7 +92,8 @@ export const useIndex = () => {
  * @param initialScript script
  * @returns
  */
-export const useScript = (initialScript: string, manager?: OptionManagerType) => {
+export const useScript = (initialScript: string, manager: OptionManagerType = {}) => {
+    const indexHook = useIndex();
     const {
         index,
         handleStart,
@@ -100,9 +101,7 @@ export const useScript = (initialScript: string, manager?: OptionManagerType) =>
         handleResume,
         handleStop: stopIndex,
         handleReset,
-        setWPM,
-        ...rest
-    } = useIndex();
+    } = indexHook;
 
     const [script] = useState(initialScript);
     // const [managers, setManagers] = useState<OptionManagerType>({ ...manager });
@@ -111,7 +110,7 @@ export const useScript = (initialScript: string, manager?: OptionManagerType) =>
     const splittedRef = useRef(["", ...processScript(script)]);
     const loopRef = useRef(2);
 
-    const managersRef = useRef<OptionManagerType>(manager || {});
+    const managersRef = useRef<OptionManagerType>({...manager});
 
     // empty interval/timeout to create reusable refs with useRef
     const breakRef = useRef(
@@ -188,20 +187,15 @@ export const useScript = (initialScript: string, manager?: OptionManagerType) =>
     }, [index, handleStop, handleReset, handleStart, resetScript]);
 
     return {
-        index,
+        ...indexHook,
         currentWord: splittedRef.current[index],
         words: splittedRef.current,
-        handleStart,
-        handlePause,
-        handleResume,
         handleStop,
         haltFor,
         breakFor,
-        setWPM,
         setLoops,
         setOptionManagers,
         addOptionManagers,
-        ...rest,
     };
 };
 
