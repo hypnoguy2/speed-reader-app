@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
+import { Button, Card, Container, Form, ListGroup, Stack } from "react-bootstrap";
 import { standardWrapper, pivot, processScript } from "./Helpers";
 
 import { useScriptDisplay } from "./ScriptDisplay";
@@ -130,7 +130,7 @@ const App = () => {
 
     const handlePivotChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setUsePivot(ev.target.checked);
-        setPivotFunction(() => ev.target.checked ? pivot : standardWrapper);
+        setPivotFunction(() => (ev.target.checked ? pivot : standardWrapper));
     };
 
     const handleStroboChange = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -146,26 +146,19 @@ const App = () => {
                 backdrop={false}
                 placement="end"
                 onHide={() => setMenuOpen(false)}>
-                <Stack gap={3}>
-                    <Stack gap={0}>
-                        <Accordion className="mb-3">
-                            <Accordion.Item eventKey="0">
-                                <Accordion.Header>Script</Accordion.Header>
-                                <Accordion.Body className="p-0">
-                                    <Form.Control
-                                        as="textarea"
-                                        readOnly
-                                        style={{ height: 300 }}
-                                        value={script}
-                                    />
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        </Accordion>
+                <Stack gap={0}>
+                    <h5>Script</h5>
+                    <Card className="d-grid gap-2 mb-4 border-0">
+                        <Form.Control
+                            as="textarea"
+                            readOnly
+                            style={{ height: 300 }}
+                            value={script}
+                        />
                         <Button onClick={() => setEditorOpen(true)}>Edit Script</Button>
-                        <hr />
-                    </Stack>
-                    <Stack gap={0}>
-                        <h6>Script settings</h6>
+                    </Card>
+                    <h5>Script component settings</h5>
+                    <Card className="mb-4 border-0">
                         <ListGroup>
                             <ListGroup.Item>
                                 <Form.Label>WPM (Words Per Second)</Form.Label>
@@ -222,10 +215,10 @@ const App = () => {
                                 </ListGroup>
                             </ListGroup.Item>
                         </ListGroup>
-                    </Stack>
-                    <Stack gap={0}>
-                        <h6>Strobe settings</h6>
-                        <ListGroup>
+                    </Card>
+                    <h5>Strobe settings</h5>
+                    <Card>
+                        <ListGroup variant="flush">
                             <ListGroup.Item>
                                 <Form.Check
                                     type="checkbox"
@@ -246,7 +239,7 @@ const App = () => {
                                 <Form.Text>Amount of total frames.</Form.Text>
                             </ListGroup.Item>
                         </ListGroup>
-                    </Stack>
+                    </Card>
                 </Stack>
             </MenuContainer>
             <ScriptEditor
