@@ -139,8 +139,8 @@ const App = () => {
 
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            {strobo && isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
             {isActive && element}
+            {strobo && isActive && <Strobe flashOptions={{ flashFrames: 1, loopFrames: 2 }} />}
             <MenuContainer
                 show={menuOpen}
                 backdrop={false}

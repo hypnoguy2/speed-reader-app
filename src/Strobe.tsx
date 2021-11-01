@@ -38,7 +38,6 @@ const Strobe = (props: StrobeProps) => {
     return (
         <div className="w-100 h-100 ">
             <div className="w-100 h-100 flash" style={{ opacity: counterRef.current < options.flashFrames ? 1 : 0 }}>
-                {counterRef.current}
             </div>
         </div>
     );
