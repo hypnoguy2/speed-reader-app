@@ -141,9 +141,6 @@ const App = () => {
         <Container className="h-100 w-100 p-0" fluid>
             {strobo && isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
             {isActive && element}
-            <div className="text-wrapper">
-                {/* <div className="text" style={{ fontSize: fontSize + "vw" }}></div> */}
-            </div>
             <MenuContainer
                 show={menuOpen}
                 backdrop={false}
