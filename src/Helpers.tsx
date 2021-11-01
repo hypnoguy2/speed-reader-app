@@ -1,8 +1,12 @@
 import JsxParser from "react-jsx-parser";
 
-export const  pivot = (word: string) => {
+export interface OptionManagerType {
+    [key: string]: (value: string | number) => void;
+}
+
+export const pivot = (word: string) => {
     if (word === undefined) return "";
-    
+
     var length = word.length;
     let start, end, result;
     // Longer words are "right-weighted" for easier readability.
@@ -27,7 +31,6 @@ export const  pivot = (word: string) => {
         result = result + end;
         result = result + "</span>";
     } else {
-
         var tail = 22 - (word.length + 7);
         word = "......." + word + ".".repeat(tail);
 
@@ -43,7 +46,7 @@ export const  pivot = (word: string) => {
     }
     result = result.replace(/\./g, "<span class='invisible'>.</span>");
     return <JsxParser jsx={result} />;
-}
+};
 
 export const processScript = (s: string): string[] => {
     // removes whitespaces in options, then splits on whitespaces
@@ -53,4 +56,3 @@ export const processScript = (s: string): string[] => {
 export const splitString = (s: string): string[] => {
     return s.split(/\s+/g);
 };
-
