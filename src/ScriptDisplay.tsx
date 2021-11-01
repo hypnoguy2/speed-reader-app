@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import { idFunc, OptionManagerType, PivotFunctionType } from "./Helpers";
+import { standardWrapper, OptionManagerType, PivotFunctionType } from "./Helpers";
 import { useScript } from "./hooks/ScriptHook";
 
 export const useScriptDisplay = (initialScript: string) => {
@@ -11,7 +11,7 @@ export const useScriptDisplay = (initialScript: string) => {
         });
 
     const [element, setElement] = useState<ReactNode>(<></>);
-    const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => idFunc);
+    const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => standardWrapper);
 
     const fontsizeRef = useRef("10vw");
 
@@ -31,7 +31,9 @@ export const useScriptDisplay = (initialScript: string) => {
 
     useEffect(() => {
         setElement(
-            <div style={{ fontSize: fontsizeRef.current }}>{pivotFunction(currentWord)}</div>
+            <div className="h-100 w-100" style={{ fontSize: fontsizeRef.current }}>
+                {pivotFunction(currentWord)}
+            </div>
         );
     }, [currentWord, pivotFunction]);
 

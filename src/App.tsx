@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
-import { idFunc, pivot, processScript } from "./Helpers";
+import { standardWrapper, pivot, processScript } from "./Helpers";
 
 import { useScriptDisplay } from "./ScriptDisplay";
 import ScriptEditor from "./ScriptEditor";
@@ -23,7 +23,7 @@ const App = () => {
     const [fontSize, setFontSize] = useState("10");
     const [loops, setLoops] = useState("1");
 
-    const [usePivot, setUsePivot] = useState(true);
+    const [usePivot, setUsePivot] = useState(false);
     const [strobo, setStrobo] = useState(false);
 
     const {
@@ -130,7 +130,7 @@ const App = () => {
 
     const handlePivotChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setUsePivot(ev.target.checked);
-        setPivotFunction(() => ev.target.checked ? pivot : idFunc);
+        setPivotFunction(() => ev.target.checked ? pivot : standardWrapper);
     };
 
     const handleStroboChange = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -140,11 +140,9 @@ const App = () => {
     return (
         <Container className="h-100 w-100 p-0" fluid>
             {strobo && isRunning && <Strobe flashOptions={{ flashFrames: 2, loopFrames: 5 }} />}
-            <div id="spritzer"></div>
+            {isActive && element}
             <div className="text-wrapper">
-                <div className="text" style={{ fontSize: fontSize + "vw" }}>
-                    {isActive && element}
-                </div>
+                {/* <div className="text" style={{ fontSize: fontSize + "vw" }}></div> */}
             </div>
             <MenuContainer
                 show={menuOpen}
