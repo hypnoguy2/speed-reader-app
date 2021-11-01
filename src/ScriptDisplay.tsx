@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { OptionManagerType } from "./Helpers";
+import { idFunc, OptionManagerType, PivotFunctionType } from "./Helpers";
 import { useScript } from "./hooks/ScriptHook";
 
 export const useScriptDisplay = (initialScript: string) => {
@@ -10,6 +10,8 @@ export const useScriptDisplay = (initialScript: string) => {
             },
         });
 
+    const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => idFunc);
+
     // Reading in script options
     useEffect(() => {
         addOptionManagers({
@@ -19,17 +21,18 @@ export const useScriptDisplay = (initialScript: string) => {
         } as OptionManagerType);
     }, [addOptionManagers, breakFor, haltFor, setWPM]);
 
-    const [element, setElement] = useState<ReactNode>(<span>{index}</span>);
+    const [element, setElement] = useState<ReactNode>(<></>);
 
     useEffect(() => {
-        setElement(<span>{currentWord}</span>);
-    }, [currentWord]);
+        setElement(pivotFunction(currentWord));
+    }, [currentWord, pivotFunction]);
 
     return {
         index,
         element,
         setWPM,
         breakFor,
+        setPivotFunction,
         ...script,
     };
 };

@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Accordion, Button, Container, Form, ListGroup, Stack } from "react-bootstrap";
-import { pivot, processScript } from "./Helpers";
+import { idFunc, pivot, processScript } from "./Helpers";
 
 import { useScriptDisplay } from "./ScriptDisplay";
 import ScriptEditor from "./ScriptEditor";
@@ -39,6 +39,7 @@ const App = () => {
         handleStop,
         breakFor,
         setWPM,
+        setPivotFunction,
     } = useScriptDisplay(script);
 
     const [startOptions, setStartOptions] = useState({
@@ -129,6 +130,7 @@ const App = () => {
 
     const handlePivotChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setUsePivot(ev.target.checked);
+        setPivotFunction(() => ev.target.checked ? pivot : idFunc);
     };
 
     const handleStroboChange = (ev: ChangeEvent<HTMLInputElement>) => {

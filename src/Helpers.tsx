@@ -1,10 +1,17 @@
+import { ReactNode } from "react";
 import JsxParser from "react-jsx-parser";
+
+export type PivotFunctionType = (w: string) => ReactNode;
 
 export interface OptionManagerType {
     [key: string]: (value: string | number) => void;
 }
 
-export const pivot = (word: string) => {
+export const idFunc = (w: string) => {
+    return w;
+};
+
+export const pivot = (word: string): ReactNode => {
     if (word === undefined) return "";
 
     var length = word.length;
