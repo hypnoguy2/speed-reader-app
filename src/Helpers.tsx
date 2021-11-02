@@ -65,7 +65,7 @@ export const pivot = (word: string): ReactNode => {
 
 export const processScript = (s: string): string[] => {
     // removes whitespaces in options, then splits on whitespaces
-    return splitString(s.replace(/<[^>]*>/gi, (match) => match.replace(/\s+/g, "")));
+    return s.replace(/<[^>]*>/gi, (match) => match.replace(/\s+/g, "").replace(/</g, " <").replace(/>/g, ">")).split(/\s+/g);
 };
 
 export const splitString = (s: string): string[] => {
