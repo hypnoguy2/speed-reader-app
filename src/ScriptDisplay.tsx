@@ -3,25 +3,33 @@ import { standardWrapper, PivotFunctionType } from "./Helpers";
 import { OptionManagerType, useScript } from "./hooks/ScriptHook";
 
 export const useScriptDisplay = (initialScript: string) => {
+    const scriptHook = useScript(initialScript, {
+        log: (val) => {
+            console.log(val);
+        },
+    });
     const {
         index,
         currentWord,
         indexRef,
         wordsRef,
         setWPM,
-        haltFor,
+        handlePause,
+        handleResume,
         addOptionManagers,
-        ...script
-    } = useScript(initialScript, {
-        log: (val) => {
-            console.log(val);
-        },
-    });
+    } = scriptHook;
 
     const [element, setElement] = useState<ReactNode>(<></>);
     const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => standardWrapper);
 
     const fontsizeRef = useRef("10vw");
+
+    // empty interval/timeout to create reusable refs with useRef
+    const haltRef = useRef(
+        setTimeout(() => {
+            return;
+        }, 1000000)
+    );
 
     const setFontsize = useCallback((value: string) => {
         fontsizeRef.current = value;
@@ -32,6 +40,17 @@ export const useScriptDisplay = (initialScript: string) => {
             wordsRef.current.splice(indexRef.current + 2, 0, "", `<halt=${value}>`);
         },
         [indexRef, wordsRef]
+    );
+
+    const haltFor = useCallback(
+        (value: number) => {
+            handlePause();
+            clearTimeout(haltRef.current);
+            haltRef.current = setTimeout(() => {
+                handleResume();
+            }, value * 1000);
+        },
+        [handlePause, handleResume]
     );
 
     // Reading in script options
@@ -53,7 +72,7 @@ export const useScriptDisplay = (initialScript: string) => {
     }, [currentWord, pivotFunction]);
 
     return {
-        ...script,
+        ...scriptHook,
         index,
         element,
         setWPM,
