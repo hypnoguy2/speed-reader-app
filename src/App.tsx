@@ -6,10 +6,6 @@ import { useScriptDisplay } from "./ScriptDisplay";
 import { induction } from "./Scripts";
 import Strobe from "./Strobe";
 
-// interface OptionManagerType {
-//     [key: string]: (value: string | number) => void;
-// }
-
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
     const [activeKey, setActiveKey] = useState("editor");
