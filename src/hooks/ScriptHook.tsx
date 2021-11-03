@@ -3,7 +3,7 @@ import { useIndex } from "./IndexHook";
 
 export type OptionManagerType = {
     [key: string]: (value: string | number) => void;
-}
+};
 
 const processScript = (s: string): string[] => {
     // removes whitespaces in options, then splits on whitespaces
@@ -21,10 +21,7 @@ const processScript = (s: string): string[] => {
  */
 export const useScript = (initialScript: string, manager: OptionManagerType = {}) => {
     const indexHook = useIndex();
-    const {
-        index,
-        handleStop: stopIndex,
-    } = indexHook;
+    const { index, handleStop } = indexHook;
     const [script, setScript] = useState(initialScript);
 
     const indexRef = useRef(index);
@@ -39,10 +36,6 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
     const addOptionManagers = useCallback((manager: OptionManagerType) => {
         managersRef.current = { ...managersRef.current, ...manager };
     }, []);
-
-    const handleStop = useCallback(() => {
-        stopIndex();
-    }, [stopIndex]);
 
     const resetScript = useCallback(() => {
         splittedRef.current = ["", ...processScript(script)];
@@ -66,7 +59,7 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         }
     }, [index]);
 
-    // effect to handle script looping
+    // stop script when index reached the end
     useEffect(() => {
         if (index >= splittedRef.current.length) {
             handleStop();
@@ -79,7 +72,6 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         indexRef: indexRef,
         currentWord: splittedRef.current[index],
         wordsRef: splittedRef,
-        handleStop,
         resetScript,
         setScript,
         setOptionManagers,
