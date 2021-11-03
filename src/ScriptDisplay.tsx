@@ -13,7 +13,12 @@ export const useScriptDisplay = (initialScript: string) => {
         currentWord,
         indexRef,
         wordsRef,
+        isActive,
         setWPM,
+        handleStart,
+        handleReset,
+        handleStop,
+        resetScript,
         handlePause,
         handleResume,
         addOptionManagers,
@@ -21,6 +26,7 @@ export const useScriptDisplay = (initialScript: string) => {
 
     const [element, setElement] = useState<ReactNode>(<></>);
     const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => standardWrapper);
+    const loopRef = useRef(2);
 
     const fontsizeRef = useRef("10vw");
 
@@ -62,6 +68,19 @@ export const useScriptDisplay = (initialScript: string) => {
             fontsize: setFontsize,
         } as OptionManagerType);
     }, [addOptionManagers, breakFor, haltFor, setFontsize, setWPM]);
+
+    // effect to handle script looping
+    useEffect(() => {
+        if (!isActive && index >= wordsRef.current.length) {
+            loopRef.current = loopRef.current - 1;
+            if (loopRef.current === 0) handleStop();
+            else {
+                handleReset();
+                resetScript();
+                handleStart();
+            }
+        }
+    }, [index, handleStop, handleReset, handleStart, resetScript, wordsRef, isActive]);
 
     useEffect(() => {
         setElement(

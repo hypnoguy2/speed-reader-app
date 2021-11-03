@@ -23,21 +23,14 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
     const indexHook = useIndex();
     const {
         index,
-        handleStart,
         handleStop: stopIndex,
-        handleReset,
     } = indexHook;
     const [script, setScript] = useState(initialScript);
 
     const indexRef = useRef(index);
     const splittedRef = useRef(["", ...processScript(script)]);
-    const loopRef = useRef(2);
 
     const managersRef = useRef<OptionManagerType>({ ...manager });
-
-    const setLoops = useCallback((loops: number) => {
-        loopRef.current = loops;
-    }, []);
 
     const setOptionManagers = useCallback((manager: OptionManagerType) => {
         managersRef.current = { ...manager };
@@ -76,15 +69,9 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
     // effect to handle script looping
     useEffect(() => {
         if (index >= splittedRef.current.length) {
-            loopRef.current = loopRef.current - 1;
-            if (loopRef.current === 0) handleStop();
-            else {
-                handleReset();
-                resetScript();
-                setTimeout(() => handleStart(), 1000);
-            }
+            handleStop();
         }
-    }, [index, handleStop, handleReset, handleStart, resetScript]);
+    }, [handleStop, index]);
 
     return {
         ...indexHook,
@@ -93,7 +80,6 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         currentWord: splittedRef.current[index],
         wordsRef: splittedRef,
         handleStop,
-        setLoops,
         resetScript,
         setScript,
         setOptionManagers,
