@@ -3,12 +3,20 @@ import { standardWrapper, PivotFunctionType } from "./Helpers";
 import { OptionManagerType, useScript } from "./hooks/ScriptHook";
 
 export const useScriptDisplay = (initialScript: string) => {
-    const { index, currentWord, setWPM, haltFor, breakFor, addOptionManagers, ...script } =
-        useScript(initialScript, {
-            log: (val) => {
-                console.log(val);
-            },
-        });
+    const {
+        index,
+        currentWord,
+        indexRef,
+        wordsRef,
+        setWPM,
+        haltFor,
+        addOptionManagers,
+        ...script
+    } = useScript(initialScript, {
+        log: (val) => {
+            console.log(val);
+        },
+    });
 
     const [element, setElement] = useState<ReactNode>(<></>);
     const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => standardWrapper);
@@ -18,6 +26,13 @@ export const useScriptDisplay = (initialScript: string) => {
     const setFontsize = useCallback((value: string) => {
         fontsizeRef.current = value;
     }, []);
+
+    const breakFor = useCallback(
+        (value: number) => {
+            wordsRef.current.splice(indexRef.current + 2, 0, "", `<halt=${value}>`);
+        },
+        [indexRef, wordsRef]
+    );
 
     // Reading in script options
     useEffect(() => {
@@ -38,11 +53,11 @@ export const useScriptDisplay = (initialScript: string) => {
     }, [currentWord, pivotFunction]);
 
     return {
+        ...script,
         index,
         element,
         setWPM,
         breakFor,
         setPivotFunction,
-        ...script,
     };
 };

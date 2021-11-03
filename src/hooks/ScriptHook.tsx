@@ -113,8 +113,10 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
 
     return {
         ...indexHook,
+        index: indexRef.current,
+        indexRef: indexRef,
         currentWord: splittedRef.current[index],
-        words: splittedRef.current,
+        wordsRef: splittedRef,
         handleStop,
         haltFor,
         breakFor,
