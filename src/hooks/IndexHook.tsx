@@ -54,11 +54,10 @@ export const useIndex = () => {
         (newWPM: number) => {
             wpmRef.current = newWPM;
             if (isRunning) {
-                handlePause();
                 handleResume();
             }
         },
-        [isRunning, handlePause, handleResume]
+        [isRunning, handleResume]
     );
 
     return {
