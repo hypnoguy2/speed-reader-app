@@ -3,10 +3,6 @@ import JsxParser from "react-jsx-parser";
 
 export type PivotFunctionType = (w: string) => ReactNode;
 
-export interface OptionManagerType {
-    [key: string]: (value: string | number) => void;
-}
-
 export const standardWrapper = (w: string) => {
     return (
         <div className="text-wrapper">
@@ -65,7 +61,11 @@ export const pivot = (word: string): ReactNode => {
 
 export const processScript = (s: string): string[] => {
     // removes whitespaces in options, then splits on whitespaces
-    return s.replace(/<[^>]*>/gi, (match) => match.replace(/\s+/g, "").replace(/</g, " <").replace(/>/g, ">")).split(/\s+/g);
+    return s
+        .replace(/<[^>]*>/gi, (match) =>
+            match.replace(/\s+/g, "").replace(/</g, " <").replace(/>/g, ">")
+        )
+        .split(/\s+/g);
 };
 
 export const splitString = (s: string): string[] => {

@@ -1,6 +1,6 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import { standardWrapper, OptionManagerType, PivotFunctionType } from "./Helpers";
-import { useScript } from "./hooks/ScriptHook";
+import { standardWrapper, PivotFunctionType } from "./Helpers";
+import { OptionManagerType, useScript } from "./hooks/ScriptHook";
 
 export const useScriptDisplay = (initialScript: string) => {
     const { index, currentWord, setWPM, haltFor, breakFor, addOptionManagers, ...script } =

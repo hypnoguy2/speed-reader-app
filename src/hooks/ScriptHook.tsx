@@ -1,6 +1,18 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { OptionManagerType, processScript } from "../Helpers";
 import { useIndex } from "./IndexHook";
+
+export type OptionManagerType = {
+    [key: string]: (value: string | number) => void;
+}
+
+const processScript = (s: string): string[] => {
+    // removes whitespaces in options, then splits on whitespaces
+    return s
+        .replace(/<[^>]*>/gi, (match) =>
+            match.replace(/\s+/g, "").replace(/</g, " <").replace(/>/g, ">")
+        )
+        .split(/\s+/g);
+};
 
 /**
  * A hook that uses the index hook to go through a script. The script can have options.
@@ -17,7 +29,7 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         handleStop: stopIndex,
         handleReset,
     } = indexHook;
-    const [script, setScript ] = useState(initialScript);  
+    const [script, setScript] = useState(initialScript);
 
     const indexRef = useRef(index);
     const splittedRef = useRef(["", ...processScript(script)]);
