@@ -71,14 +71,11 @@ export const useScriptDisplay = (initialScript: string) => {
 
     // effect to handle script looping
     useEffect(() => {
-        if (!isActive && index >= wordsRef.current.length) {
+        if (!isActive && loopRef.current !== 0 && index >= wordsRef.current.length) {
             loopRef.current = loopRef.current - 1;
-            if (loopRef.current === 0) handleStop();
-            else {
-                handleReset();
-                resetScript();
-                handleStart();
-            }
+            handleReset();
+            resetScript();
+            handleStart();
         }
     }, [index, handleStop, handleReset, handleStart, resetScript, wordsRef, isActive]);
 
