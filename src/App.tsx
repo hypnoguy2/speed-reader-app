@@ -1,11 +1,9 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { Button, Card, Container, Form, ListGroup, Stack } from "react-bootstrap";
-import { standardWrapper, pivot, processScript } from "./Helpers";
+import { Button, Card, Container, Form, ListGroup, Modal, Nav, Navbar, Tab } from "react-bootstrap";
+import { standardWrapper, pivot } from "./Helpers";
 
 import { useScriptDisplay } from "./ScriptDisplay";
-import ScriptEditor from "./ScriptEditor";
 import { induction } from "./Scripts";
-import MenuContainer from "./SettingsContainer";
 import Strobe from "./Strobe";
 
 // interface OptionManagerType {
@@ -14,11 +12,9 @@ import Strobe from "./Strobe";
 
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
-    const [editorOpen, setEditorOpen] = useState(false);
+    const [activeKey, setActiveKey] = useState("editor");
 
     const [script, setScript] = useState(induction);
-    const [splittedScript, setSplittetScript] = useState(processScript(script));
-    // const [words, setWords] = useState(splittedScript.filter((w) => !w.startsWith("<")));
 
     const [fontSize, setFontSize] = useState("10");
     const [loops, setLoops] = useState("1");
@@ -28,8 +24,6 @@ const App = () => {
 
     const {
         element,
-        words,
-        index,
         isActive,
         isRunning,
         wpm,
@@ -40,13 +34,9 @@ const App = () => {
         breakFor,
         setWPM,
         setPivotFunction,
+        resetScript,
+        setScript: setHookScript,
     } = useScriptDisplay(script);
-
-    const [startOptions, setStartOptions] = useState({
-        wpm,
-        loops,
-        fontSize,
-    });
 
     // Performance checker
     // const renderTime = useRef(0);
@@ -55,20 +45,6 @@ const App = () => {
 
     //     renderTime.current = performance.now();
     // });
-
-    // const optionsManager: OptionManagerType = useMemo(() => {
-    //     return {
-    //         wpm: setWPM,
-    //         fontSize: setFontSize,
-    //         pause: handlePause,
-    //     } as OptionManagerType;
-    // }, [setWPM, handlePause]);
-
-    useEffect(() => {
-        if (menuOpen) {
-            setStartOptions({ wpm, loops, fontSize });
-        }
-    }, [menuOpen, wpm, loops, fontSize]);
 
     // --- effects for useScript implementation ---
     useEffect(() => {
@@ -107,11 +83,10 @@ const App = () => {
     // -----------------------------------------------
 
     // Option change handlers
-    const handleScriptChange = (value: string) => {
-        setScript(value);
-        const splitted = processScript(value);
-        setSplittetScript(splitted);
-        // setWords(splitted.filter((w) => !w.startsWith("<")));
+    const handleScriptChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        setScript(ev.target.value);
+        setHookScript(ev.target.value);
+        resetScript();
     };
 
     const handleWPMChange = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -137,116 +112,149 @@ const App = () => {
         setStrobo(ev.target.checked);
     };
 
+    const handleNavSelect = (eventKey: string | null, e: React.SyntheticEvent<unknown>) => {
+        if (eventKey !== null) setActiveKey(eventKey);
+    };
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
             {isActive && element}
             {strobo && isActive && <Strobe flashOptions={{ flashFrames: 1, loopFrames: 2 }} />}
-            <MenuContainer
+            <Modal
                 show={menuOpen}
                 backdrop={false}
-                placement="end"
+                fullscreen="lg-down"
+                size="lg"
+                scrollable
+                centered
+                dialogClassName="align-items-stretch"
                 onHide={() => setMenuOpen(false)}>
-                <Stack gap={0}>
-                    <h5>Script</h5>
-                    <Card className="d-grid gap-2 mb-4 border-0">
-                        <Form.Control
-                            as="textarea"
-                            readOnly
-                            style={{ height: 300 }}
-                            value={script}
-                        />
-                        <Button onClick={() => setEditorOpen(true)}>Edit Script</Button>
-                    </Card>
-                    <h5>Script component settings</h5>
-                    <Card className="mb-4 border-0">
-                        <ListGroup>
-                            <ListGroup.Item>
-                                <Form.Label>WPM (Words Per Second)</Form.Label>
+                <Navbar bg="light">
+                    <Container>
+                        <Nav
+                            className="me-auto"
+                            onSelect={handleNavSelect}
+                            defaultActiveKey="editor">
+                            <Nav.Link eventKey="editor">Editor</Nav.Link>
+                            <Nav.Link eventKey="settings">Settings</Nav.Link>
+                        </Nav>
+                        <button className="btn-close" onClick={() => setMenuOpen(false)}></button>
+                    </Container>
+                </Navbar>
+                <Modal.Body>
+                    <Tab.Content className="h-100">
+                        <Tab.Pane active={activeKey === "editor"} className="h-100">
+                            <div className="d-flex flex-column h-100">
+                                <div className="mb-3">
+                                    Available settings to set in script are{" "}
+                                    <code>wpm, halt, break, fontsize</code>. For more explanations
+                                    see settings.
+                                </div>
                                 <Form.Control
-                                    type="number"
-                                    value={wpm}
-                                    onChange={handleWPMChange}
-                                    max={1000}
+                                    as="textarea"
+                                    value={script}
+                                    style={{ resize: "none", flexGrow: 1 }}
+                                    autoFocus
+                                    onChange={handleScriptChange}
                                 />
-                                <Form.Text>The value has to be between 100 and 700.</Form.Text>
-                            </ListGroup.Item>
-                            <ListGroup.Item>
-                                <Form.Label htmlFor="font-size-input">Font size</Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    value={fontSize}
-                                    onChange={handleFontSizeChange}
-                                    min={1}
-                                    step={0.1}
-                                />
-                                <Form.Text>Fontsize in vw (viewport width).</Form.Text>
-                            </ListGroup.Item>
-                            <ListGroup.Item>
-                                <Form.Label>Number of Loops</Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    value={loops}
-                                    onChange={handleLoopsChange}
-                                    max={10}
-                                    min={-1}
-                                />
-                                <Form.Text>
-                                    0 loops means no words, 1-n means n loops, -1 means infinite
-                                    loops.
-                                </Form.Text>
-                            </ListGroup.Item>
-                            <ListGroup.Item>
-                                <Form.Check
-                                    type="checkbox"
-                                    id="use-pivot"
-                                    label="Use pivot centering"
-                                    checked={usePivot}
-                                    onChange={handlePivotChange}
-                                />
+                            </div>
+                        </Tab.Pane>
+                        <Tab.Pane active={activeKey === "settings"}>
+                            <h5>Script component settings</h5>
+                            <Card className="mb-4 border-0">
                                 <ListGroup>
-                                    <ListGroup.Item variant={!usePivot ? "secondary" : ""}>
-                                        <Form.Label>Pivot color</Form.Label>
+                                    <ListGroup.Item>
+                                        <Form.Label>WPM (Words Per Second)</Form.Label>
                                         <Form.Control
-                                            disabled={!usePivot}
-                                            type="color"
-                                            defaultValue="#de0000"
+                                            type="number"
+                                            value={wpm}
+                                            onChange={handleWPMChange}
+                                            max={1000}
                                         />
+                                        <Form.Text>
+                                            The value has to be between 100 and 700.
+                                        </Form.Text>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <Form.Label htmlFor="font-size-input">Font size</Form.Label>
+                                        <Form.Control
+                                            type="number"
+                                            value={fontSize}
+                                            onChange={handleFontSizeChange}
+                                            min={1}
+                                            step={0.1}
+                                        />
+                                        <Form.Text>Fontsize in vw (viewport width).</Form.Text>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <Form.Label>Number of Loops</Form.Label>
+                                        <Form.Control
+                                            type="number"
+                                            value={loops}
+                                            onChange={handleLoopsChange}
+                                            max={10}
+                                            min={-1}
+                                        />
+                                        <Form.Text>
+                                            0 loops means no words, 1-n means n loops, -1 means
+                                            infinite loops.
+                                        </Form.Text>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <Form.Check
+                                            type="checkbox"
+                                            id="use-pivot"
+                                            label="Use pivot centering"
+                                            checked={usePivot}
+                                            onChange={handlePivotChange}
+                                        />
+                                        <ListGroup>
+                                            <ListGroup.Item variant={!usePivot ? "secondary" : ""}>
+                                                <Form.Label>Pivot color</Form.Label>
+                                                <Form.Control
+                                                    disabled={!usePivot}
+                                                    type="color"
+                                                    defaultValue="#de0000"
+                                                />
+                                            </ListGroup.Item>
+                                        </ListGroup>
                                     </ListGroup.Item>
                                 </ListGroup>
-                            </ListGroup.Item>
-                        </ListGroup>
-                    </Card>
-                    <h5>Strobe settings</h5>
-                    <Card>
-                        <ListGroup variant="flush">
-                            <ListGroup.Item>
-                                <Form.Check
-                                    type="checkbox"
-                                    id="use-strobo"
-                                    label="Activate strobo"
-                                    checked={strobo}
-                                    onChange={handleStroboChange}
-                                />
-                            </ListGroup.Item>
-                            <ListGroup.Item>
-                                <Form.Label>FlashFrames</Form.Label>
-                                <Form.Control type="number" disabled />
-                                <Form.Text>Amount of white frames.</Form.Text>
-                            </ListGroup.Item>
-                            <ListGroup.Item>
-                                <Form.Label>Frames</Form.Label>
-                                <Form.Control type="number" disabled />
-                                <Form.Text>Amount of total frames.</Form.Text>
-                            </ListGroup.Item>
-                        </ListGroup>
-                    </Card>
-                </Stack>
-            </MenuContainer>
-            <ScriptEditor
-                show={editorOpen}
-                script={script}
-                onScriptChange={handleScriptChange}
-                onHide={() => setEditorOpen(false)}></ScriptEditor>
+                            </Card>
+                            <h5>Strobe settings</h5>
+                            <Card>
+                                <ListGroup variant="flush">
+                                    <ListGroup.Item>
+                                        <Form.Check
+                                            type="checkbox"
+                                            id="use-strobo"
+                                            label="Activate strobo"
+                                            checked={strobo}
+                                            onChange={handleStroboChange}
+                                        />
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <Form.Label>FlashFrames</Form.Label>
+                                        <Form.Control type="number" disabled />
+                                        <Form.Text>Amount of white frames.</Form.Text>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <Form.Label>Frames</Form.Label>
+                                        <Form.Control type="number" disabled />
+                                        <Form.Text>Amount of total frames.</Form.Text>
+                                    </ListGroup.Item>
+                                </ListGroup>
+                            </Card>
+                        </Tab.Pane>
+                    </Tab.Content>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setMenuOpen(false)}>
+                        Close
+                    </Button>
+                    <Button variant="primary">Start</Button>
+                </Modal.Footer>
+            </Modal>
         </Container>
     );
 };

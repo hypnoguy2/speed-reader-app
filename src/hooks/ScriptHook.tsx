@@ -17,9 +17,7 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         handleStop: stopIndex,
         handleReset,
     } = indexHook;
-
-    const [script] = useState(initialScript);
-    // const [managers, setManagers] = useState<OptionManagerType>({ ...manager });
+    const [script, setScript ] = useState(initialScript);  
 
     const indexRef = useRef(index);
     const splittedRef = useRef(["", ...processScript(script)]);
@@ -109,6 +107,8 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         haltFor,
         breakFor,
         setLoops,
+        resetScript,
+        setScript,
         setOptionManagers,
         addOptionManagers,
     };
