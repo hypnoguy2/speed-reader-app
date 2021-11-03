@@ -24,8 +24,6 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
     const {
         index,
         handleStart,
-        handlePause,
-        handleResume,
         handleStop: stopIndex,
         handleReset,
     } = indexHook;
@@ -36,13 +34,6 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
     const loopRef = useRef(2);
 
     const managersRef = useRef<OptionManagerType>({ ...manager });
-
-    // empty interval/timeout to create reusable refs with useRef
-    const breakRef = useRef(
-        setTimeout(() => {
-            return;
-        }, 1000000)
-    );
 
     const setLoops = useCallback((loops: number) => {
         loopRef.current = loops;
@@ -57,28 +48,12 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
     }, []);
 
     const handleStop = useCallback(() => {
-        clearTimeout(breakRef.current);
         stopIndex();
     }, [stopIndex]);
 
     const resetScript = useCallback(() => {
         splittedRef.current = ["", ...processScript(script)];
     }, [script]);
-
-    const breakFor = useCallback((value: number) => {
-        splittedRef.current.splice(indexRef.current + 2, 0, "", `<halt=${value}>`);
-    }, []);
-
-    const haltFor = useCallback(
-        (value: number) => {
-            handlePause();
-            clearTimeout(breakRef.current);
-            breakRef.current = setTimeout(() => {
-                handleResume();
-            }, value * 1000);
-        },
-        [handlePause, handleResume]
-    );
 
     // option handle effect
     useEffect(() => {
@@ -118,8 +93,6 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         currentWord: splittedRef.current[index],
         wordsRef: splittedRef,
         handleStop,
-        haltFor,
-        breakFor,
         setLoops,
         resetScript,
         setScript,
