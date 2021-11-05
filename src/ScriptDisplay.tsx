@@ -3,11 +3,7 @@ import { standardWrapper, PivotFunctionType } from "./Helpers";
 import { OptionManagerType, useScript } from "./hooks/ScriptHook";
 
 export const useScriptDisplay = (initialScript: string) => {
-    const scriptHook = useScript(initialScript, {
-        log: (val) => {
-            console.log(val);
-        },
-    });
+    const scriptHook = useScript(initialScript);
     const {
         index,
         currentWord,

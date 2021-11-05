@@ -1,17 +1,27 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useIndex } from "./IndexHook";
+
+export type OptionOperators = {
+    open?: string;
+    assign?: string;
+    seperator?: string;
+    close?: string;
+};
 
 export type OptionManagerType = {
     [key: string]: (value: string | number) => void;
 };
 
-const processScript = (s: string): string[] => {
-    // removes whitespaces in options, then splits on whitespaces
-    return s
-        .replace(/<[^>]*>/gi, (match) =>
-            match.replace(/\s+/g, "").replace(/</g, " <").replace(/>/g, ">")
-        )
-        .split(/\s+/g);
+export type ScriptOptions = {
+    managers?: OptionManagerType;
+    operators?: OptionOperators;
+};
+
+const defaultOperators: OptionOperators = {
+    open: "<",
+    assign: "=",
+    seperator: ",",
+    close: ">",
 };
 
 /**
@@ -19,15 +29,31 @@ const processScript = (s: string): string[] => {
  * @param initialScript script
  * @returns
  */
-export const useScript = (initialScript: string, manager: OptionManagerType = {}) => {
+export const useScript = (initialScript: string, options: ScriptOptions = {}) => {
     const indexHook = useIndex();
     const { index, handleStop } = indexHook;
     const [script, setScript] = useState(initialScript);
 
     const indexRef = useRef(index);
-    const splittedRef = useRef(["", ...processScript(script)]);
+    const operators = useMemo(() => {
+        return { ...defaultOperators, ...options.operators };
+    }, [options.operators]);
 
-    const managersRef = useRef<OptionManagerType>({ ...manager });
+    const managersRef = useRef<OptionManagerType>({ ...options.managers });
+
+    const processScript = useCallback(
+        (s: string): string[] => {
+            // RegExp compiles to "[^>]*>" with default operators
+            const regexString = operators.open + "[^" + operators.close + "]*" + operators.close;
+            // removes whitespaces in options, then splits on whitespaces
+            return s
+                .replace(new RegExp(regexString, "g"), (match) => match.replace(/\s+/g, ""))
+                .split(/\s+/g);
+        },
+        [operators]
+    );
+
+    const splittedRef = useRef(["", ...processScript(script)]);
 
     const setOptionManagers = useCallback((manager: OptionManagerType) => {
         managersRef.current = { ...manager };
@@ -39,25 +65,33 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
 
     const resetScript = useCallback(() => {
         splittedRef.current = ["", ...processScript(script)];
-    }, [script]);
+    }, [processScript, script]);
 
     // option handle effect
     useEffect(() => {
         indexRef.current = index;
 
         const nextWord = splittedRef.current[index + 1];
-        if (nextWord && nextWord.startsWith("<")) {
+        if (nextWord && nextWord.startsWith(operators.open + "")) {
             for (const key in managersRef.current) {
-                const option = nextWord.match(new RegExp(key + "=[^,>]+"));
+                // RegExp compiles to 'key + "=[^,>]+"' with default operators
+                const optionRegExp = new RegExp(
+                    key + operators.assign + "[^" + operators.seperator + operators.close + "]+"
+                );
+                const option = nextWord.match(optionRegExp);
                 if (option) {
-                    const newValue = option[0].match(/=([^,>]+)/); // the paranthesis create a capture group
+                    // RegExp compiles to "([^,>]+)" with default operators, the paranthesis create a capture group
+                    const valueRegExp = new RegExp(
+                        operators.assign + "([^" + operators.seperator + operators.close + "]+)"
+                    );
+                    const newValue = option[0].match(valueRegExp);
                     if (newValue) managersRef.current[key](newValue[1]); // use value of capture group to get value
                 }
             }
 
             splittedRef.current = splittedRef.current.filter((w, i) => i !== index + 1);
         }
-    }, [index]);
+    }, [index, operators]);
 
     // stop script when index reached the end
     useEffect(() => {
@@ -72,6 +106,7 @@ export const useScript = (initialScript: string, manager: OptionManagerType = {}
         indexRef: indexRef,
         currentWord: splittedRef.current[index],
         wordsRef: splittedRef,
+        operators,
         resetScript,
         setScript,
         setOptionManagers,
