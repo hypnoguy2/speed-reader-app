@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Button, Card, Container, Form, ListGroup, Modal, Nav, Navbar, Tab } from "react-bootstrap";
 import { standardWrapper, pivot } from "./Helpers";
+import { HowToPage } from "./HowToPage";
 
 import { useScriptDisplay } from "./ScriptDisplay";
 import { induction } from "./Scripts";
@@ -8,17 +9,18 @@ import Strobe from "./Strobe";
 
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
-    const [activeKey, setActiveKey] = useState("editor");
+    const [activeKey, setActiveKey] = useState("howTo");
 
     const [script, setScript] = useState(induction);
 
     const [fontSize, setFontSize] = useState("10");
-    const [loops, setLoops] = useState("1");
+    const [loops, setLoops] = useState(0);
 
     const [usePivot, setUsePivot] = useState(false);
     const [strobo, setStrobo] = useState(false);
 
     const {
+        script: hookScript,
         element,
         isActive,
         isRunning,
@@ -30,7 +32,7 @@ const App = () => {
         breakFor,
         setWPM,
         setPivotFunction,
-        resetScript,
+        setLoops: setHookLoops,
         setScript: setHookScript,
     } = useScriptDisplay(script);
 
@@ -49,6 +51,10 @@ const App = () => {
                 handleStart();
             }, 1000);
     }, [handleStart, menuOpen]);
+
+    useEffect(() => {
+        setHookLoops(loops);
+    }, [loops, setHookLoops]);
 
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
@@ -81,8 +87,6 @@ const App = () => {
     // Option change handlers
     const handleScriptChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setScript(ev.target.value);
-        setHookScript(ev.target.value);
-        resetScript();
     };
 
     const handleWPMChange = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +100,7 @@ const App = () => {
     };
 
     const handleLoopsChange = (ev: ChangeEvent<HTMLInputElement>) => {
-        if (ev.target.validity.valid) setLoops(ev.target.value);
+        if (ev.target.validity.valid) setLoops(Number(ev.target.value));
     };
 
     const handlePivotChange = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -112,9 +116,13 @@ const App = () => {
         if (eventKey !== null) setActiveKey(eventKey);
     };
 
+    const handleApplyScript = () => {
+        setHookScript(script);
+    };
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            {isActive && element}
+            <div style={{ fontSize: "10vw" }}>{isActive && element}</div>
             {strobo && isActive && <Strobe flashOptions={{ flashFrames: 1, loopFrames: 2 }} />}
             <Modal
                 show={menuOpen}
@@ -130,9 +138,10 @@ const App = () => {
                         <Nav
                             className="me-auto"
                             onSelect={handleNavSelect}
-                            defaultActiveKey="editor">
+                            defaultActiveKey={activeKey}>
                             <Nav.Link eventKey="editor">Editor</Nav.Link>
                             <Nav.Link eventKey="settings">Settings</Nav.Link>
+                            <Nav.Link eventKey="howTo">How to use</Nav.Link>
                         </Nav>
                         <button className="btn-close" onClick={() => setMenuOpen(false)}></button>
                     </Container>
@@ -141,11 +150,6 @@ const App = () => {
                     <Tab.Content className="h-100">
                         <Tab.Pane active={activeKey === "editor"} className="h-100">
                             <div className="d-flex flex-column h-100">
-                                <div className="mb-3">
-                                    Available settings to set in script are{" "}
-                                    <code>wpm, halt, break, fontsize</code>. For more explanations
-                                    see settings.
-                                </div>
                                 <Form.Control
                                     as="textarea"
                                     value={script}
@@ -156,7 +160,6 @@ const App = () => {
                             </div>
                         </Tab.Pane>
                         <Tab.Pane active={activeKey === "settings"}>
-                            <h5>Script component settings</h5>
                             <Card className="mb-4 border-0">
                                 <ListGroup>
                                     <ListGroup.Item>
@@ -189,11 +192,10 @@ const App = () => {
                                             value={loops}
                                             onChange={handleLoopsChange}
                                             max={10}
-                                            min={-1}
+                                            min={0}
                                         />
                                         <Form.Text>
-                                            0 loops means no words, 1-n means n loops, -1 means
-                                            infinite loops.
+                                            Number of times the script should be repeated. 
                                         </Form.Text>
                                     </ListGroup.Item>
                                     <ListGroup.Item>
@@ -242,13 +244,20 @@ const App = () => {
                                 </ListGroup>
                             </Card>
                         </Tab.Pane>
+                        <Tab.Pane active={activeKey === "howTo"}>
+                            <HowToPage />
+                        </Tab.Pane>
                     </Tab.Content>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setMenuOpen(false)}>
-                        Close
+                    <Button
+                        variant={hookScript === script ? "secondary" : "success"}
+                        onClick={handleApplyScript}>
+                        {hookScript === script ? "Script processed" : "Process Script"}
                     </Button>
-                    <Button variant="primary">Start</Button>
+                    <Button variant="primary" onClick={() => setMenuOpen(false)}>
+                        Start
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </Container>

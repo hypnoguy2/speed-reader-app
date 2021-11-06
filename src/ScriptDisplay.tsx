@@ -12,7 +12,6 @@ export const useScriptDisplay = (initialScript: string) => {
         isActive,
         setWPM,
         handleStart,
-        handleReset,
         handleStop,
         resetScript,
         handlePause,
@@ -22,7 +21,7 @@ export const useScriptDisplay = (initialScript: string) => {
 
     const [element, setElement] = useState<ReactNode>(<></>);
     const [pivotFunction, setPivotFunction] = useState<PivotFunctionType>(() => standardWrapper);
-    const loopRef = useRef(2);
+    const loopRef = useRef(0);
 
     const fontsizeRef = useRef("10vw");
 
@@ -35,6 +34,10 @@ export const useScriptDisplay = (initialScript: string) => {
 
     const setFontsize = useCallback((value: string) => {
         fontsizeRef.current = value;
+    }, []);
+
+    const setLoops = useCallback((value: number) => {
+        loopRef.current = value;
     }, []);
 
     const breakFor = useCallback(
@@ -69,11 +72,10 @@ export const useScriptDisplay = (initialScript: string) => {
     useEffect(() => {
         if (!isActive && loopRef.current !== 0 && index >= wordsRef.current.length) {
             loopRef.current = loopRef.current - 1;
-            handleReset();
             resetScript();
             handleStart();
         }
-    }, [index, handleStop, handleReset, handleStart, resetScript, wordsRef, isActive]);
+    }, [index, handleStop, handleStart, resetScript, wordsRef, isActive]);
 
     useEffect(() => {
         setElement(
@@ -89,6 +91,7 @@ export const useScriptDisplay = (initialScript: string) => {
         element,
         setWPM,
         breakFor,
+        setLoops,
         setPivotFunction,
     };
 };

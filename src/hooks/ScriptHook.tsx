@@ -31,7 +31,7 @@ const defaultOperators: OptionOperators = {
  */
 export const useScript = (initialScript: string, options: ScriptOptions = {}) => {
     const indexHook = useIndex();
-    const { index, handleStop } = indexHook;
+    const { index, handleStop, handleReset } = indexHook;
     const [script, setScript] = useState(initialScript);
 
     const indexRef = useRef(index);
@@ -65,7 +65,13 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
 
     const resetScript = useCallback(() => {
         splittedRef.current = ["", ...processScript(script)];
-    }, [processScript, script]);
+        handleReset();
+    }, [handleReset, processScript, script]);
+
+    // when script is changed, reset the script
+    useEffect(() => {
+        resetScript();
+    }, [resetScript]);
 
     // option handle effect
     useEffect(() => {
@@ -102,6 +108,7 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
 
     return {
         ...indexHook,
+        script,
         index: indexRef.current,
         indexRef: indexRef,
         currentWord: splittedRef.current[index],
