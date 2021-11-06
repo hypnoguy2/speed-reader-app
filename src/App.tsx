@@ -1,5 +1,17 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { Button, Card, Container, Form, ListGroup, Modal, Nav, Navbar, Tab } from "react-bootstrap";
+import {
+    Button,
+    Card,
+    Container,
+    Form,
+    ListGroup,
+    Modal,
+    Nav,
+    Navbar,
+    Tab,
+    Toast,
+    ToastContainer,
+} from "react-bootstrap";
 
 import { standardWrapper, pivot } from "./Helpers";
 import { HowToPage } from "./HowToPage";
@@ -9,26 +21,21 @@ import { example } from "./Scripts";
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
     const [activeKey, setActiveKey] = useState("howTo");
-
     const [script, setScript] = useState(example);
-
     const [loops, setLoops] = useState(0);
-
     const [usePivot, setUsePivot] = useState(false);
+    const [paused, setPaused] = useState(false);
 
     const {
         script: hookScript,
+        index,
         element,
         isActive,
-        isRunning,
-        wpm,
         handleStart,
         handlePause,
         handleResume,
-        handleStop,
-        breakFor,
-        setWPM,
         setPivotFunction,
+        resetScript,
         setLoops: setHookLoops,
         setScript: setHookScript,
     } = useScriptDisplay(script);
@@ -43,41 +50,31 @@ const App = () => {
 
     // --- effects for useScript implementation ---
     useEffect(() => {
-        if (!menuOpen)
-            setTimeout(() => {
-                handleStart();
-            }, 1000);
-    }, [handleStart, menuOpen]);
-
-    useEffect(() => {
         setHookLoops(loops);
     }, [loops, setHookLoops]);
 
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
-            if (ev.key === "m") {
+            if (ev.key === "Escape") {
                 handlePause();
                 setMenuOpen(true);
             }
             if (ev.key === "p") {
-                if (!isActive) return;
-                if (isRunning) handlePause();
-                else handleResume();
-            }
-            if (ev.key === "s") {
-                handleStop();
-            }
-            if (ev.key === "b") {
-                breakFor(2);
-            }
-            if (ev.key === "w") {
-                setWPM(wpm === 300 ? 100 : 300);
+                if (isActive) {
+                    if (paused) {
+                        handleResume();
+                        setPaused(false);
+                    } else {
+                        handlePause();
+                        setPaused(true);
+                    }
+                }
             }
         };
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [breakFor, handlePause, handleResume, handleStop, isActive, isRunning, setWPM, wpm]);
+    }, [handlePause, handleResume, isActive, paused]);
 
     // -----------------------------------------------
 
@@ -103,9 +100,24 @@ const App = () => {
         setHookScript(script);
     };
 
+    const handleStartScript = () => {
+        setMenuOpen(false);
+        setPaused(false);
+
+        if (!isActive) {
+            if (index !== 0) resetScript();
+            handleStart();
+        } else handleResume();
+    };
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
             <div style={{ fontSize: "10vw" }}>{isActive && element}</div>
+            <ToastContainer className="p-3" position="bottom-center">
+                <Toast show={!menuOpen && paused}>
+                    <Toast.Body>Script is paused</Toast.Body>
+                </Toast>
+            </ToastContainer>
             <Modal
                 show={menuOpen}
                 backdrop={false}
@@ -113,8 +125,7 @@ const App = () => {
                 size="lg"
                 scrollable
                 centered
-                dialogClassName="align-items-stretch"
-                onHide={() => setMenuOpen(false)}>
+                dialogClassName="align-items-stretch">
                 <Navbar bg="light">
                     <Container>
                         <Nav
@@ -180,8 +191,8 @@ const App = () => {
                         onClick={handleApplyScript}>
                         {hookScript === script ? "Script processed" : "Process Script"}
                     </Button>
-                    <Button variant="primary" onClick={() => setMenuOpen(false)}>
-                        Start
+                    <Button variant="primary" onClick={handleStartScript}>
+                        {isActive ? "Resume" : "Start"}
                     </Button>
                 </Modal.Footer>
             </Modal>

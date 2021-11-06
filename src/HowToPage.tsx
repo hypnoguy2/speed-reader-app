@@ -25,7 +25,10 @@ export const HowToPage = () => {
                     <tr>
                         <td>wpm (300)</td>
                         <td>{"<wpm=300>"}</td>
-                        <td>Sets the words per minute the script displays</td>
+                        <td>
+                            Sets the words per minute the script displays. Note: The change will be
+                            applied to the word previous to the command!
+                        </td>
                     </tr>
                     <tr>
                         <td>halt</td>
