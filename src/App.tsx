@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import {
     Button,
     Card,
@@ -25,6 +25,8 @@ const App = () => {
     const [loops, setLoops] = useState(0);
     const [usePivot, setUsePivot] = useState(false);
     const [paused, setPaused] = useState(false);
+    const [file, setFile] = useState<File | null>(null);
+    const [coverBG, setCoverBG] = useState(false);
 
     const {
         script: hookScript,
@@ -110,9 +112,27 @@ const App = () => {
         } else handleResume();
     };
 
+    const handleFileChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        if (ev.target.files) setFile(ev.target.files[0]);
+    };
+
+    const handleCoverChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        setCoverBG(ev.target.checked);
+    };
+
+    const background = useMemo(() => {
+        if (file)
+            return (
+                <img className="background" src={URL.createObjectURL(file)} alt="background file" />
+            );
+    }, [file]);
+
     return (
         <Container className="h-100 w-100 p-0" fluid>
-            <div style={{ fontSize: "10vw" }}>{isActive && element}</div>
+            <div className={"background-wrapper " + (coverBG ? "cover" : "")}>
+                {!menuOpen && background}
+            </div>
+            {isActive && element}
             <ToastContainer className="p-3" position="bottom-center">
                 <Toast show={!menuOpen && paused}>
                     <Toast.Body>Script is paused</Toast.Body>
@@ -175,6 +195,37 @@ const App = () => {
                                             label="Use pivot centering"
                                             checked={usePivot}
                                             onChange={handlePivotChange}
+                                        />
+                                    </ListGroup.Item>
+                                </ListGroup>
+                            </Card>
+                            <Card className="mb-4 border-0">
+                                <ListGroup>
+                                    <ListGroup.Item>
+                                        <Form.Group className="mb-3" controlId="formFile">
+                                            <Form.Label>Set background file</Form.Label>
+                                            <Form.Control
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                            />
+                                        </Form.Group>
+                                        {file && (
+                                            <img
+                                                className="previewImg"
+                                                src={URL.createObjectURL(file)}
+                                                alt="preview"
+                                            />
+                                        )}
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <Form.Check
+                                            type="checkbox"
+                                            id="scale-img"
+                                            label="Scale image to full background"
+                                            checked={coverBG}
+                                            disabled={!file}
+                                            onChange={handleCoverChange}
                                         />
                                     </ListGroup.Item>
                                 </ListGroup>
