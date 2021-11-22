@@ -26,8 +26,7 @@ export const HowToPage = () => {
                         <td>wpm (300)</td>
                         <td>{"<wpm=300>"}</td>
                         <td>
-                            Sets the words per minute the script displays. Note: The change will be
-                            applied to the word previous to the command!
+                            Sets the words per minute the script displays.
                         </td>
                     </tr>
                     <tr>
@@ -49,8 +48,7 @@ export const HowToPage = () => {
                         <td>fontsize (10vw)</td>
                         <td>{"<fontize=50px>"}</td>
                         <td>
-                            Sets the fontsize for the words. Any css values are accepted. Note: The
-                            change will be applied to the word previous to the command!
+                            Sets the fontsize for the words. Any css values are accepted.
                         </td>
                     </tr>
                 </tbody>
