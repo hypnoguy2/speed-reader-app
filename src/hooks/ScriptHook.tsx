@@ -71,7 +71,7 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
     }, []);
 
     const resetScript = useCallback(() => {
-        splittedRef.current = ["", ...processScript(script)];
+        splittedRef.current = ["", "", ...processScript(script)];
         handleReset();
     }, [handleReset, processScript, script]);
 
