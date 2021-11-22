@@ -8,8 +8,14 @@ export type OptionOperators = {
     close?: string;
 };
 
+export type ScheduledFunction = {
+    delay: number;
+    func: (value: string | number) => void;
+    arg: string | number;
+};
+
 export type OptionManagerType = {
-    [key: string]: (value: string | number) => void;
+    [key: string]: [(value: string | number) => void, number];
 };
 
 export type ScriptOptions = {
@@ -40,6 +46,7 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
     }, [options.operators]);
 
     const managersRef = useRef<OptionManagerType>({ ...options.managers });
+    const schedulerRef = useRef<ScheduledFunction[]>([]);
 
     const processScript = useCallback(
         (s: string): string[] => {
@@ -93,17 +100,37 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
                     "]+)",
                 "g"
             );
+            // look for all options
             const matches = nextWord.matchAll(regExp);
             let match = matches.next();
 
+            // iterate over matches
             while (!match.done) {
-                if (managersRef.current[match.value[1]])
-                    managersRef.current[match.value[1]](match.value[2]);
+                // option is registered in managers
+                if (managersRef.current[match.value[1]]) {
+                    // get manager touple
+                    const touple = managersRef.current[match.value[1]];
+                    // schedule function call
+                    schedulerRef.current.push({
+                        delay: touple[1],
+                        func: touple[0],
+                        arg: match.value[2],
+                    });
+                }
                 match = matches.next();
             }
 
             splittedRef.current = splittedRef.current.filter((w, i) => i !== index + 1);
         }
+
+        // call functions from scheduler
+        for (const scheduledFunc of schedulerRef.current) {
+            if (scheduledFunc.delay === 0) scheduledFunc.func(scheduledFunc.arg);
+        }
+
+        // filter all called functions and decrement delay
+        schedulerRef.current = schedulerRef.current.filter((f) => f.delay !== 0);
+        schedulerRef.current.forEach((f) => --f.delay);
     }, [index, operators]);
 
     // stop script when index reached the end

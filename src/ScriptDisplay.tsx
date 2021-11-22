@@ -42,7 +42,7 @@ export const useScriptDisplay = (initialScript: string) => {
 
     const breakFor = useCallback(
         (value: number) => {
-            wordsRef.current.splice(indexRef.current + 2, 0, "", `<halt=${value}>`);
+            wordsRef.current.splice(indexRef.current + 1, 0, "", `<halt=${value}>`);
         },
         [indexRef, wordsRef]
     );
@@ -61,10 +61,10 @@ export const useScriptDisplay = (initialScript: string) => {
     // Reading in script options
     useEffect(() => {
         addOptionManagers({
-            wpm: setWPM,
-            halt: haltFor,
-            break: breakFor,
-            fontsize: setFontsize,
+            wpm: [setWPM, 1],
+            halt: [haltFor, 0],
+            break: [breakFor, 0],
+            fontsize: [setFontsize, 1],
         } as OptionManagerType);
     }, [addOptionManagers, breakFor, haltFor, setFontsize, setWPM]);
 
