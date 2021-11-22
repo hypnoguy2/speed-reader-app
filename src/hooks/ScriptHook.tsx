@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import _ from "lodash";
+
 import { useIndex } from "./IndexHook";
 
 export type OptionOperators = {
@@ -55,7 +57,8 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
             // removes whitespaces in options, then splits on whitespaces
             return s
                 .replace(new RegExp(regexString, "g"), (match) => match.replace(/\s+/g, ""))
-                .split(/\s+/g);
+                .split(/\s+/g)
+                .map((str) => _.trim(str, ".,"));
         },
         [operators]
     );
