@@ -79,20 +79,27 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
 
         const nextWord = splittedRef.current[index + 1];
         if (nextWord && nextWord.startsWith(operators.open + "")) {
-            for (const key in managersRef.current) {
-                // RegExp compiles to 'key + "=[^,>]+"' with default operators
-                const optionRegExp = new RegExp(
-                    key + operators.assign + "[^" + operators.seperator + operators.close + "]+"
-                );
-                const option = nextWord.match(optionRegExp);
-                if (option) {
-                    // RegExp compiles to "([^,>]+)" with default operators, the paranthesis create a capture group
-                    const valueRegExp = new RegExp(
-                        operators.assign + "([^" + operators.seperator + operators.close + "]+)"
-                    );
-                    const newValue = option[0].match(valueRegExp);
-                    if (newValue) managersRef.current[key](newValue[1]); // use value of capture group to get value
-                }
+            // RegExp compiles to "/([^<,=]+)=([^,>]+)/g" with default operators. The paranthesis create capture groups
+            const regExp = new RegExp(
+                "([^" +
+                    operators.open +
+                    operators.seperator +
+                    operators.assign +
+                    "]+)" +
+                    operators.assign +
+                    "([^" +
+                    operators.seperator +
+                    operators.close +
+                    "]+)",
+                "g"
+            );
+            const matches = nextWord.matchAll(regExp);
+            let match = matches.next();
+
+            while (!match.done) {
+                if (managersRef.current[match.value[1]])
+                    managersRef.current[match.value[1]](match.value[2]);
+                match = matches.next();
             }
 
             splittedRef.current = splittedRef.current.filter((w, i) => i !== index + 1);
