@@ -10,7 +10,7 @@ export const HowToPage = () => {
                 the words using a pivot function.
             </p>
             <p>
-                The following options are available (More Options are in the making, as well as an
+                The following options are currently available (More Options are in the making, as well as an
                 Strobe effect for this application):
             </p>
             <Table bordered>
