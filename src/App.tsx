@@ -15,7 +15,7 @@ import {
 
 import { standardWrapper, pivot } from "./Helpers";
 import { HowToPage } from "./HowToPage";
-import { useScriptDisplay } from "./ScriptDisplay";
+import { useContextScript } from "./ScriptContext";
 import { example } from "./Scripts";
 
 const App = () => {
@@ -40,7 +40,7 @@ const App = () => {
         resetScript,
         setLoops: setHookLoops,
         setScript: setHookScript,
-    } = useScriptDisplay(script);
+    } = useContextScript();
 
     // Performance checker
     // const renderTime = useRef(0);
