@@ -11,7 +11,7 @@ export const standardWrapper = (w: string) => {
     );
 };
 
-export const pivot = (word: string): ReactNode => {
+export const pivotOne = (word: string): ReactNode => {
     if (word === undefined) return "";
 
     var length = word.length;
