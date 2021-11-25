@@ -87,7 +87,7 @@ export const MenuModal = (props: MenuModalProps) => {
             centered
             dialogClassName="align-items-stretch">
             <Navbar bg="light">
-                <Container>
+                <Container fluid>
                     <Nav
                         className="me-auto"
                         onSelect={handleNavSelect}

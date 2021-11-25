@@ -151,6 +151,7 @@ export const useScript = (initialScript: string, options: ScriptOptions = {}) =>
         currentWord: splittedRef.current[index],
         wordsRef: splittedRef,
         operators,
+        options: Object.keys(managersRef.current),
         resetScript,
         setScript,
         setOptionManagers,
