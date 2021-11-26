@@ -15,16 +15,19 @@ export const MacroInput = (props: MacroInputProps) => {
     const { options } = useContextScript();
 
     const {
-        macro: { id },
+        macro: { id, regex },
         onChange,
     } = props;
 
-    const [regex, setRegex] = useState(props.macro.regex);
+    const [checked, setChecked] = useState(typeof regex !== "string");
+    const [regexp, setRegexp] = useState(
+        checked ? regex.toString().substring(1, regex.toString().length - 2) : regex
+    );
     const [option, setOption] = useState(props.macro.option);
     const [value, setValue] = useState(props.macro.value);
 
-    const handleRegexChange = (ev: ChangeEvent<HTMLInputElement>) => {
-        setRegex(ev.target.value);
+    const handleRegexpChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        setRegexp(ev.target.value);
     };
 
     const handleOptionChange = (ev: ChangeEvent<HTMLSelectElement>) => {
@@ -35,22 +38,36 @@ export const MacroInput = (props: MacroInputProps) => {
         setValue(ev.target.value);
     };
 
+    const handleCheckboxChange = (ev: ChangeEvent<HTMLInputElement>) => {
+        setChecked(ev.target.checked);
+    };
+
     const changeFunc = useMemo(() => debounce((value: Macro) => onChange(value), 500), [onChange]);
 
     useEffect(() => {
-        changeFunc({ id, regex, option, value } as Macro);
-    }, [regex, option, value, changeFunc, id]);
+        changeFunc({
+            id,
+            regex: checked ? new RegExp(regexp, "g") : regexp,
+            option,
+            value,
+        } as Macro);
+    }, [regexp, option, value, changeFunc, id, checked]);
 
     return (
         <Row className="gx-1 align-items-end">
             <Col xs={12} sm>
                 <Form.Group>
                     <Form.Label className="mb-0">Replace</Form.Label>
-                    <Form.Control
-                        value={regex}
-                        aria-label="macro-value"
-                        onChange={handleRegexChange}
-                    />
+                    <InputGroup>
+                        <InputGroup.Checkbox onChange={handleCheckboxChange} value={checked} />
+                        {checked && <InputGroup.Text>/</InputGroup.Text>}
+                        <Form.Control
+                            value={regexp.toString()}
+                            aria-label="macro-value"
+                            onChange={handleRegexpChange}
+                        />
+                        {checked && <InputGroup.Text>/</InputGroup.Text>}
+                    </InputGroup>
                 </Form.Group>
             </Col>
             <Col>

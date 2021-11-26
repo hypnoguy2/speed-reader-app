@@ -95,9 +95,9 @@ export const MenuModal = (props: MenuModalProps) => {
             ...prev,
             {
                 id: Date.now().toString(),
-                regex: "...",
+                regex: "",
                 option: "wpm",
-                value: "0",
+                value: "300",
             },
         ]);
     };

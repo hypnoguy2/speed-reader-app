@@ -22,7 +22,7 @@ export type ScriptHookOptions = {
 
 export type Macro = {
     id: string;
-    regex: string;
+    regex: string | RegExp;
     option: string;
     value: string | number;
 };

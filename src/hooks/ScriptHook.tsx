@@ -45,16 +45,22 @@ export const useScript = (initialScript: string, options: ScriptHookOptions = {}
         (s: string): string[] => {
             let ret = s;
             for (const mac of macros) {
-                ret = ret.replace(
-                    new RegExp(escapeString(mac.regex), "g"),
-                    " " +
-                        operators.open +
-                        mac.option +
-                        operators.assign +
-                        mac.value +
-                        operators.close +
-                        " "
-                );
+                if (mac.regex !== "") {
+                    const reg =
+                        typeof mac.regex === "string"
+                            ? new RegExp(escapeString(mac.regex), "g")
+                            : mac.regex;
+                    ret = ret.replace(
+                        reg,
+                        " " +
+                            operators.open +
+                            mac.option +
+                            operators.assign +
+                            mac.value +
+                            operators.close +
+                            " "
+                    );
+                }
             }
 
             // RegExp compiles to "[^>]*>" with default operators
