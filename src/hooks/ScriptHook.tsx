@@ -1,13 +1,24 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import _ from "lodash";
 
-import { OptionOperators, ScriptHookOptions, useIndex, OptionManagerType, ScheduledFunction } from ".";
+import {
+    OptionOperators,
+    ScriptHookOptions,
+    useIndex,
+    OptionManagerType,
+    ScheduledFunction,
+    Macro,
+} from ".";
 
 const defaultOperators: OptionOperators = {
     open: "<",
     assign: "=",
     seperator: ",",
     close: ">",
+};
+
+const escapeString = (string: string) => {
+    return string.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 };
 
 /**
@@ -19,6 +30,7 @@ export const useScript = (initialScript: string, options: ScriptHookOptions = {}
     const indexHook = useIndex();
     const { index, handleStop, handleReset } = indexHook;
     const [script, setScript] = useState(initialScript);
+    const [macros, setMacros] = useState<Macro[]>([]);
 
     const indexRef = useRef(index);
     const operators = useMemo(() => {
@@ -27,21 +39,34 @@ export const useScript = (initialScript: string, options: ScriptHookOptions = {}
 
     const managersRef = useRef<OptionManagerType>({ ...options.managers });
     const schedulerRef = useRef<ScheduledFunction[]>([]);
+    const splittedRef = useRef<string[]>([]);
 
     const processScript = useCallback(
         (s: string): string[] => {
+            let ret = s;
+            for (const mac of macros) {
+                ret = ret.replace(
+                    new RegExp(escapeString(mac.regex), "g"),
+                    " " +
+                        operators.open +
+                        mac.option +
+                        operators.assign +
+                        mac.value +
+                        operators.close +
+                        " "
+                );
+            }
+
             // RegExp compiles to "[^>]*>" with default operators
             const regexString = operators.open + "[^" + operators.close + "]*" + operators.close;
             // removes whitespaces in options, then splits on whitespaces
-            return s
+            return ret
                 .replace(new RegExp(regexString, "g"), (match) => match.replace(/\s+/g, ""))
                 .split(/\s+/g)
                 .map((str) => _.trim(str, ".,"));
         },
-        [operators]
+        [operators, macros]
     );
-
-    const splittedRef = useRef(["", ...processScript(script)]);
 
     const setOptionManagers = useCallback((manager: OptionManagerType) => {
         managersRef.current = { ...manager };
@@ -132,6 +157,7 @@ export const useScript = (initialScript: string, options: ScriptHookOptions = {}
         options: Object.keys(managersRef.current),
         resetScript,
         setScript,
+        setMacros,
         setOptionManagers,
         addOptionManagers,
     };

@@ -47,6 +47,7 @@ export const MenuModal = (props: MenuModalProps) => {
 
     const handleApplyScript = () => {
         hook.setScript(script);
+        hook.setMacros(macros);
     };
 
     const handleLoopsChange = (ev: ChangeEvent<HTMLInputElement>) => {
