@@ -1,29 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import _ from "lodash";
 
-import { useIndex } from "./IndexHook";
-
-export type OptionOperators = {
-    open?: string;
-    assign?: string;
-    seperator?: string;
-    close?: string;
-};
-
-export type ScheduledFunction = {
-    delay: number;
-    func: (value: string | number) => void;
-    arg: string | number;
-};
-
-export type OptionManagerType = {
-    [key: string]: [(value: string | number) => void, number];
-};
-
-export type ScriptOptions = {
-    managers?: OptionManagerType;
-    operators?: OptionOperators;
-};
+import { OptionOperators, ScriptHookOptions, useIndex, OptionManagerType, ScheduledFunction } from ".";
 
 const defaultOperators: OptionOperators = {
     open: "<",
@@ -37,7 +15,7 @@ const defaultOperators: OptionOperators = {
  * @param initialScript script
  * @returns
  */
-export const useScript = (initialScript: string, options: ScriptOptions = {}) => {
+export const useScript = (initialScript: string, options: ScriptHookOptions = {}) => {
     const indexHook = useIndex();
     const { index, handleStop, handleReset } = indexHook;
     const [script, setScript] = useState(initialScript);
