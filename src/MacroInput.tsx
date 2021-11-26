@@ -59,7 +59,7 @@ export const MacroInput = (props: MacroInputProps) => {
 
     useEffect(() => {
         const val = validateRegex(regexp.toString());
-        setIsValid(val);
+        setIsValid(regexp.length > 0 && (val || !checked));
         changeFunc({
             id,
             regex: checked && val ? new RegExp(regexp, "g") : regexp,
