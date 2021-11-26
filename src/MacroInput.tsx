@@ -11,6 +11,16 @@ export interface MacroInputProps {
     onRemove: (id: string) => void;
 }
 
+const validateRegex = (string: string): boolean => {
+    if (string === "") return false;
+    try {
+        new RegExp(string);
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
 export const MacroInput = (props: MacroInputProps) => {
     const { options } = useContextScript();
 
@@ -19,9 +29,12 @@ export const MacroInput = (props: MacroInputProps) => {
         onChange,
     } = props;
 
+    const [isValid, setIsValid] = useState(!!regex);
     const [checked, setChecked] = useState(typeof regex !== "string");
-    const [regexp, setRegexp] = useState(
-        checked ? regex.toString().substring(1, regex.toString().length - 2) : regex
+    const [regexp, setRegexp] = useState<string>(
+        typeof regex !== "string"
+            ? regex.toString().substring(1, regex.toString().length - 2)
+            : regex
     );
     const [option, setOption] = useState(props.macro.option);
     const [value, setValue] = useState(props.macro.value);
@@ -45,9 +58,11 @@ export const MacroInput = (props: MacroInputProps) => {
     const changeFunc = useMemo(() => debounce((value: Macro) => onChange(value), 500), [onChange]);
 
     useEffect(() => {
+        const val = validateRegex(regexp.toString());
+        setIsValid(val);
         changeFunc({
             id,
-            regex: checked ? new RegExp(regexp, "g") : regexp,
+            regex: checked && val ? new RegExp(regexp, "g") : regexp,
             option,
             value,
         } as Macro);
@@ -59,14 +74,15 @@ export const MacroInput = (props: MacroInputProps) => {
                 <Form.Group>
                     <Form.Label className="mb-0">Replace</Form.Label>
                     <InputGroup>
-                        <InputGroup.Checkbox onChange={handleCheckboxChange} value={checked} />
+                        <InputGroup.Checkbox onChange={handleCheckboxChange} checked={checked} />
                         {checked && <InputGroup.Text>/</InputGroup.Text>}
                         <Form.Control
+                            isInvalid={!isValid}
                             value={regexp.toString()}
                             aria-label="macro-value"
                             onChange={handleRegexpChange}
                         />
-                        {checked && <InputGroup.Text>/</InputGroup.Text>}
+                        {checked && <InputGroup.Text>/g</InputGroup.Text>}
                     </InputGroup>
                 </Form.Group>
             </Col>
