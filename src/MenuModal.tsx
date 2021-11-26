@@ -32,7 +32,9 @@ export const MenuModal = (props: MenuModalProps) => {
     const [pivot, setPivot] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [coverBG, setCoverBG] = useState(false);
-    const [macros, setMacros] = useState<Macro[]>([]);
+    const [macros, setMacros] = useState<Macro[]>([
+        { id: "t", regex: "...", option: "break", value: "2" },
+    ]);
 
     const handleScriptChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setScript(ev.target.value);
@@ -147,7 +149,7 @@ export const MenuModal = (props: MenuModalProps) => {
                         </div>
                     </Tab.Pane>
                     <Tab.Pane active={activeKey === "macros"}>
-                        <Stack gap={1}>
+                        <Stack gap={2}>
                             {Object.values(macros).map((mac) => {
                                 return (
                                     <Fragment key={mac.id}>
@@ -160,7 +162,7 @@ export const MenuModal = (props: MenuModalProps) => {
                                     </Fragment>
                                 );
                             })}
-                            <Button className="mb-1" variant="primary" onClick={handleMacroAdd}>
+                            <Button className="mb-2" variant="primary" onClick={handleMacroAdd}>
                                 Add Macro
                             </Button>
                         </Stack>
