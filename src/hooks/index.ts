@@ -1,6 +1,7 @@
 import { useIndex } from "./IndexHook";
 import { useScript } from "./ScriptHook";
 import {
+    Macro,
     OptionManagerType,
     OptionOperators,
     ScheduledFunction,
@@ -8,4 +9,4 @@ import {
 } from "./hookTypes";
 
 export { useIndex, useScript };
-export type { OptionOperators, ScheduledFunction, OptionManagerType, ScriptHookOptions };
+export type { Macro, OptionOperators, ScheduledFunction, OptionManagerType, ScriptHookOptions };

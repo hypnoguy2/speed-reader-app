@@ -13,8 +13,9 @@ import {
     Tab,
 } from "react-bootstrap";
 import { pivotOne, standardWrapper } from "./Helpers";
+import { Macro } from "./hooks";
 import { HowToPage } from "./HowToPage";
-import { Macro, MacroInput } from "./MacroInput";
+import { MacroInput } from "./MacroInput";
 import { useContextScript } from "./ScriptContext";
 import { example } from "./Scripts";
 

@@ -3,13 +3,7 @@ import { debounce } from "lodash";
 import { InputGroup, Form, Row, Col, Button } from "react-bootstrap";
 
 import { useContextScript } from "./ScriptContext";
-
-export type Macro = {
-    id: string;
-    regex: string;
-    option: string;
-    value: string | number;
-};
+import { Macro } from "./hooks";
 
 export interface MacroInputProps {
     macro: Macro;

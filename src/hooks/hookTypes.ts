@@ -19,3 +19,10 @@ export type ScriptHookOptions = {
     managers?: OptionManagerType;
     operators?: OptionOperators;
 };
+
+export type Macro = {
+    id: string;
+    regex: string;
+    option: string;
+    value: string | number;
+};
