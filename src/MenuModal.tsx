@@ -3,6 +3,8 @@ import {
     Button,
     Card,
     Container,
+    Dropdown,
+    DropdownButton,
     Form,
     ListGroup,
     Modal,
@@ -18,6 +20,7 @@ import { HowToPage } from "./HowToPage";
 import { MacroInput } from "./MacroInput";
 import { useContextScript } from "./ScriptContext";
 import { example } from "./Scripts";
+import { induction } from "./scripts/induction";
 
 export interface MenuModalProps extends ModalProps {
     onFileChange?: (file: File | null) => void;
@@ -34,7 +37,9 @@ export const MenuModal = (props: MenuModalProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [coverBG, setCoverBG] = useState(false);
     const [macros, setMacros] = useState<Macro[]>([
-        { id: "t", regex: "...", option: "break", value: "2" },
+        { id: "dotdotdot", regex: "...", option: "halt", value: "2" },
+        { id: "dot", regex: ".", option: "break", value: "1" },
+        { id: "comma", regex: ",", option: "break", value: "0.2" },
     ]);
 
     const handleScriptChange = (ev: ChangeEvent<HTMLInputElement>) => {
@@ -234,6 +239,9 @@ export const MenuModal = (props: MenuModalProps) => {
                 </Tab.Content>
             </Modal.Body>
             <Modal.Footer>
+                <DropdownButton variant="info" id="select-script" title="Load Script">
+                    <Dropdown.Item onClick={() => setScript(induction)}>Induction</Dropdown.Item>
+                </DropdownButton>
                 <Button
                     variant={hook.script === script ? "secondary" : "success"}
                     onClick={handleApplyScript}>
