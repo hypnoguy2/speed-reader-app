@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, Fragment, useEffect, useState } from "react";
 import {
     Button,
     Card,
@@ -9,10 +9,12 @@ import {
     ModalProps,
     Nav,
     Navbar,
+    Stack,
     Tab,
 } from "react-bootstrap";
 import { pivotOne, standardWrapper } from "./Helpers";
 import { HowToPage } from "./HowToPage";
+import { Macro, MacroInput } from "./MacroInput";
 import { useContextScript } from "./ScriptContext";
 import { example } from "./Scripts";
 
@@ -30,6 +32,7 @@ export const MenuModal = (props: MenuModalProps) => {
     const [pivot, setPivot] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [coverBG, setCoverBG] = useState(false);
+    const [macros, setMacros] = useState<Macro[]>([]);
 
     const handleScriptChange = (ev: ChangeEvent<HTMLInputElement>) => {
         setScript(ev.target.value);
@@ -73,6 +76,36 @@ export const MenuModal = (props: MenuModalProps) => {
         if (props.onCoverChange) props.onCoverChange(ev.target.checked);
     };
 
+    const handleMacroChange = (macro: Macro) => {
+        setMacros((prev) => {
+            const idx = prev.findIndex((m) => m.id === macro.id);
+            if (idx >= 0) {
+                prev.splice(idx, 1, macro); // replace changed macro
+            }
+            return prev;
+        });
+    };
+
+    const handleMacroAdd = () => {
+        setMacros((prev) => [
+            ...prev,
+            {
+                id: Date.now().toString(),
+                regex: "...",
+                option: "wpm",
+                value: "0",
+            },
+        ]);
+    };
+
+    const handleMacroRemove = (id: string) => {
+        setMacros((prev) => {
+            const idx = prev.findIndex((m) => id === m.id);
+            if (idx >= 0) prev.splice(idx, 1);
+            return [...prev];
+        });
+    };
+
     useEffect(() => {
         setScriptLoops(loops);
     }, [loops, setScriptLoops]);
@@ -93,6 +126,7 @@ export const MenuModal = (props: MenuModalProps) => {
                         onSelect={handleNavSelect}
                         defaultActiveKey={activeKey}>
                         <Nav.Link eventKey="editor">Editor</Nav.Link>
+                        <Nav.Link eventKey="macros">Macros</Nav.Link>
                         <Nav.Link eventKey="settings">Settings</Nav.Link>
                         <Nav.Link eventKey="howTo">How to use</Nav.Link>
                     </Nav>
@@ -111,6 +145,25 @@ export const MenuModal = (props: MenuModalProps) => {
                                 onChange={handleScriptChange}
                             />
                         </div>
+                    </Tab.Pane>
+                    <Tab.Pane active={activeKey === "macros"}>
+                        <Stack gap={1}>
+                            {Object.values(macros).map((mac) => {
+                                return (
+                                    <Fragment key={mac.id}>
+                                        <MacroInput
+                                            macro={mac}
+                                            onChange={handleMacroChange}
+                                            onRemove={handleMacroRemove}
+                                        />
+                                        <hr className="m-0" />
+                                    </Fragment>
+                                );
+                            })}
+                            <Button className="mb-1" variant="primary" onClick={handleMacroAdd}>
+                                Add Macro
+                            </Button>
+                        </Stack>
                     </Tab.Pane>
                     <Tab.Pane active={activeKey === "settings"}>
                         <Card className="mb-4 border-0">
