@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import JsxParser from "react-jsx-parser";
 
 export type PivotFunctionType = (w: string) => ReactNode;
 
@@ -54,7 +53,7 @@ export const pivotOne = (word: string): ReactNode => {
     result = result.replace(/\./g, "<span class='invisible'>.</span>");
     return (
         <div className="text-wrapper">
-            <JsxParser className="text" jsx={result} />
+            <div className="text" dangerouslySetInnerHTML={{ __html: result }}></div>
         </div>
     );
 };
