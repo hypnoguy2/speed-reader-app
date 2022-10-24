@@ -63,7 +63,7 @@ export const MenuModal = (props: MenuModalProps) => {
         props.onHide();
 
         if (!hook.isActive) {
-            if (hook.index !== 0) hook.resetScript();
+            if (hook.index !== 0) hook.resetScriptHook();
             hook.handleStart();
         } else hook.handleResume();
     };

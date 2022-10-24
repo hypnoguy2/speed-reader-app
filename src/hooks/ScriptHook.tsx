@@ -82,15 +82,15 @@ export const useScript = (initialScript: string, options: ScriptHookOptions = {}
         managersRef.current = { ...managersRef.current, ...manager };
     }, []);
 
-    const resetScript = useCallback(() => {
+    const resetScriptHook = useCallback(() => {
         splittedRef.current = ["", "", ...processScript(script)];
         handleReset();
     }, [handleReset, processScript, script]);
 
     // when script is changed, reset the script
     useEffect(() => {
-        resetScript();
-    }, [resetScript]);
+        resetScriptHook();
+    }, [resetScriptHook]);
 
     // option handle effect
     useEffect(() => {
@@ -161,7 +161,7 @@ export const useScript = (initialScript: string, options: ScriptHookOptions = {}
         wordsRef: splittedRef,
         operators,
         options: Object.keys(managersRef.current),
-        resetScript,
+        resetScriptHook,
         setScript,
         setMacros,
         setOptionManagers,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Container, Toast, ToastContainer } from "react-bootstrap";
 
 import { MenuModal } from "./MenuModal";
@@ -6,11 +6,11 @@ import { useContextScript } from "./ScriptContext";
 
 const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
-    const [paused, setPaused] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [coverBG, setCoverBG] = useState(false);
 
-    const { element, isActive, handlePause, handleResume } = useContextScript();
+    const { element, isActive, isRunning, handlePause, handleResume, handleStart, handleReset } =
+        useContextScript();
 
     // Performance checker
     // const renderTime = useRef(0);
@@ -20,29 +20,33 @@ const App = () => {
     //     renderTime.current = performance.now();
     // });
 
+    const toggleMenu = useCallback(() => {
+        if (menuOpen) handleResume();
+        else handlePause();
+        setMenuOpen(!menuOpen);
+    }, [handlePause, handleResume, menuOpen]);
+
     // --- effects for useScript implementation --
     useEffect(() => {
         const handleSDown = (ev: KeyboardEvent) => {
             if (ev.key === "Escape") {
-                handlePause();
-                setMenuOpen(true);
+                toggleMenu();
             }
             if (ev.key === "p") {
-                if (isActive) {
-                    if (paused) {
-                        handleResume();
-                        setPaused(false);
-                    } else {
-                        handlePause();
-                        setPaused(true);
-                    }
-                }
+                if (isRunning) handlePause();
+                else handleResume();
+            }
+            if (ev.key === "s") {
+                handleStart();
+            }
+            if (ev.key === "r") {
+                handleReset();
             }
         };
         document.addEventListener("keydown", handleSDown);
 
         return () => document.removeEventListener("keydown", handleSDown);
-    }, [handlePause, handleResume, isActive, paused]);
+    }, [handlePause, handleReset, handleResume, handleStart, isRunning, toggleMenu]);
 
     // Option change handlers
     const handleFileChange = (file: File | null) => {
@@ -67,13 +71,13 @@ const App = () => {
             </div>
             {isActive && element}
             <ToastContainer className="p-3" position="bottom-center">
-                <Toast show={!menuOpen && paused}>
+                <Toast show={!menuOpen && !isRunning}>
                     <Toast.Body>Script is paused</Toast.Body>
                 </Toast>
             </ToastContainer>
             <MenuModal
                 show={menuOpen}
-                onHide={() => setMenuOpen(false)}
+                onHide={toggleMenu}
                 onFileChange={handleFileChange}
                 onCoverChange={handleCoverChange}
             />

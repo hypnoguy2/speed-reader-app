@@ -14,7 +14,7 @@ export const useScriptRender = (initialScript: string) => {
         setWPM,
         handleStart,
         handleStop,
-        resetScript,
+        resetScriptHook,
         handlePause,
         handleResume,
         addOptionManagers,
@@ -73,10 +73,10 @@ export const useScriptRender = (initialScript: string) => {
     useEffect(() => {
         if (!isActive && loopRef.current !== 0 && index >= wordsRef.current.length) {
             loopRef.current = loopRef.current - 1;
-            resetScript();
+            resetScriptHook();
             handleStart();
         }
-    }, [index, handleStop, handleStart, resetScript, wordsRef, isActive]);
+    }, [index, handleStop, handleStart, wordsRef, isActive, resetScriptHook]);
 
     useEffect(() => {
         setElement(
