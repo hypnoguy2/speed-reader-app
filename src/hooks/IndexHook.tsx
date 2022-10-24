@@ -22,20 +22,24 @@ export const useIndex = () => {
     }, []);
 
     const handleResume = useCallback(() => {
-        setIsRunning(true);
-        clearInterval(countRef.current);
-        countRef.current = setInterval(() => {
-            setIndex((index) => index + 1);
-        }, 60000 / wpmRef.current);
-    }, []);
+        if (isActive) {
+            setIsRunning(true);
+            clearInterval(countRef.current);
+            countRef.current = setInterval(() => {
+                setIndex((index) => index + 1);
+            }, 60000 / wpmRef.current);
+        }
+    }, [isActive]);
 
     const handleStart = useCallback(() => {
-        setIsActive(true);
-        setIsRunning(true);
-        countRef.current = setInterval(() => {
-            setIndex((index) => index + 1);
-        }, 60000 / wpmRef.current);
-    }, []);
+        if (!isActive) {
+            setIsActive(true);
+            setIsRunning(true);
+            countRef.current = setInterval(() => {
+                setIndex((index) => index + 1);
+            }, 60000 / wpmRef.current);
+        }
+    }, [isActive]);
 
     const handleStop = useCallback(() => {
         clearInterval(countRef.current);
