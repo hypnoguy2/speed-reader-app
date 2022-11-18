@@ -13,7 +13,7 @@ import {
 const defaultOperators: OptionOperators = {
     open: "<",
     assign: "=",
-    seperator: ",",
+    seperator: ";",
     close: ">",
 };
 
