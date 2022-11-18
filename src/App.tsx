@@ -8,9 +8,18 @@ const App = () => {
     const [menuOpen, setMenuOpen] = useState(true);
     const [file, setFile] = useState<File | null>(null);
     const [coverBG, setCoverBG] = useState(false);
+    const [isPaused, setIsPaused] = useState(true);
 
-    const { element, isActive, isRunning, handlePause, handleResume, handleStart, handleReset } =
-        useContextScript();
+    const {
+        element,
+        isActive,
+        isRunning,
+        handlePause: pauseScript,
+        handleResume: resumeScript,
+        handleStart,
+        handleReset,
+        resetScriptHook,
+    } = useContextScript();
 
     // Performance checker
     // const renderTime = useRef(0);
@@ -19,6 +28,20 @@ const App = () => {
 
     //     renderTime.current = performance.now();
     // });
+
+    useEffect(() => {
+        resetScriptHook();
+    }, []);
+
+    const handlePause = useCallback(() => {
+        pauseScript();
+        setIsPaused(true);
+    }, [pauseScript]);
+
+    const handleResume = useCallback(() => {
+        setIsPaused(false);
+        resumeScript();
+    }, [resumeScript]);
 
     const toggleMenu = useCallback(() => {
         if (menuOpen) handleResume();
@@ -71,7 +94,7 @@ const App = () => {
             </div>
             {isActive && element}
             <ToastContainer className="p-3" position="bottom-center">
-                <Toast show={!menuOpen && !isRunning}>
+                <Toast show={!menuOpen && isPaused}>
                     <Toast.Body>Script is paused</Toast.Body>
                 </Toast>
             </ToastContainer>
