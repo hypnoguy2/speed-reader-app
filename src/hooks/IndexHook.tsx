@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 
+const initialWPM = 300
+
 /**
  * A hook to update an index at a certain rate (wpm)
  * @returns status flags and controls for the index runner
@@ -9,7 +11,7 @@ export const useIndex = () => {
     const [isActive, setIsActive] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
 
-    const wpmRef = useRef(300);
+    const wpmRef = useRef(initialWPM);
     const countRef = useRef(
         setInterval(() => {
             return;
@@ -52,6 +54,7 @@ export const useIndex = () => {
         setIsActive(false);
         setIsRunning(false);
         setIndex(0);
+        setWPM(initialWPM);
     }, []);
 
     const setWPM = useCallback(
